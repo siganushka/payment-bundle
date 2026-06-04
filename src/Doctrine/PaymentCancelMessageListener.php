@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Siganushka\PaymentBundle\Doctrine;
+
+use Psr\Log\LoggerInterface;
+use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Enum\PaymentState;
+use Siganushka\PaymentBundle\Message\PaymentCancelMessage;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DelayStamp;
+
+class PaymentCancelMessageListener
+{
+    public function __construct(
+        private readonly LoggerInterface $logger,
+        private readonly MessageBusInterface $messageBus)
+    {
+    }
+
+    public function __invoke(Payment $entity): void
+    {
+        $number = $entity->getNumber();
+        if (null === $number || PaymentState::Pending !== $entity->getState() || !$expiredAt = $entity->getExpiredAt()) {
+            return;
+        }
+
+        $this->logger->info(__METHOD__, [
+            'expiredAt' => $expiredAt->format('Y-m-d H:i:s'),
+        ]);
+
+        $message = new PaymentCancelMessage($number);
+        $envelope = (new Envelope($message))
+            ->with(DelayStamp::delayUntil($expiredAt))
+        ;
+
+        $this->messageBus->dispatch($envelope);
+    }
+}

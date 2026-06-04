@@ -1,0 +1,31 @@
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                        https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+  <entity
+    name="Siganushka\PaymentBundle\Entity\Payment"
+    inheritance-type="SINGLE_TABLE"
+    repository-class="Siganushka\PaymentBundle\Repository\PaymentRepository">
+    <unique-constraints>
+      <unique-constraint columns="number" />
+    </unique-constraints>
+
+    <lifecycle-callbacks>
+      <lifecycle-callback type="prePersist" method="validate" />
+      <lifecycle-callback type="preUpdate" method="validate" />
+    </lifecycle-callbacks>
+
+    <id name="id" type="integer">
+      <generator strategy="AUTO"/>
+    </id>
+
+    <field name="number" type="string" />
+    <field name="amount" type="integer" />
+    <field name="gateway" type="string" />
+    <field name="details" type="json" nullable="true" />
+    <field name="state" type="string" enum-type="Siganushka\PaymentBundle\Enum\PaymentState" />
+    <field name="expiredAt" type="datetime_immutable" nullable="true" />
+    <field name="createdAt" type="datetime_immutable" />
+    <field name="updatedAt" type="datetime_immutable" nullable="true" />
+  </entity>
+</doctrine-mapping>
