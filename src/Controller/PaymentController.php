@@ -10,6 +10,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Siganushka\PaymentBundle\Dto\PaymentCreateDto;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
 use Siganushka\PaymentBundle\Enum\PaymentState;
+use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Factory\PaymentFactoryInterface;
@@ -37,30 +38,51 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    public function postCollection(EntityManagerInterface $entityManager, PaymentGatewayRegistry $registry, PaymentFactoryInterface $factory, #[MapRequestPayload] PaymentCreateDto $dto): Response
+    public function postCollection(
+        EventDispatcherInterface $eventDispatcher,
+        EntityManagerInterface $entityManager,
+        PaymentGatewayRegistry $registry,
+        PaymentFactoryInterface $factory,
+        #[MapRequestPayload]
+        PaymentCreateDto $dto): Response
     {
-        try {
-            $gateway = $registry->get($dto->gateway);
-        } catch (UnsupportedGatewayException $th) {
-            throw new BadRequestHttpException($th->getMessage(), $th);
-        }
-
         try {
             $entity = $factory->createPayment($dto->type, $dto->identifier, $dto->gateway);
         } catch (\Throwable $th) {
             throw new BadRequestHttpException($th->getMessage(), $th);
         }
 
+        try {
+            $gateway = $registry->get($dto->gateway);
+        } catch (UnsupportedGatewayException $th) {
+            throw new BadRequestHttpException($th->getMessage(), $th);
+        }
+
         if (!$gateway->supports($entity)) {
-            throw new BadRequestHttpException(\sprintf('The topup unsupported gateway "%s".', $dto->gateway));
+            throw new BadRequestHttpException(\sprintf('The payment unsupported gateway "%s".', $dto->gateway));
         }
 
         $entityManager->persist($entity);
         $entityManager->flush();
 
-        return $this->json($entity, context: [
-            'groups' => ['payment.item'],
-        ]);
+        try {
+            $result = $gateway->pay($entity);
+            if ($result->isSuccessful()) {
+                $entity->setDetails($result->getData());
+                $entity->setState(PaymentState::Succeed);
+                $eventDispatcher->dispatch(new PaymentSuccessEvent($entity));
+                $entityManager->flush();
+            }
+
+            return $this->json($result);
+        } catch (\Throwable $th) {
+            $entity->setDetails(['msg' => $th->getMessage()]);
+            $entity->setState(PaymentState::Failed);
+            $eventDispatcher->dispatch(new PaymentFailureEvent($entity));
+            $entityManager->flush();
+
+            throw new BadRequestHttpException($th->getMessage(), $th);
+        }
     }
 
     public function getItem(string $number): Response
@@ -71,40 +93,5 @@ class PaymentController extends AbstractController
         return $this->json($entity, context: [
             'groups' => ['payment.item'],
         ]);
-    }
-
-    public function getItemPay(EntityManagerInterface $entityManager, EventDispatcherInterface $eventDispatcher, PaymentGatewayRegistry $registry, string $number): Response
-    {
-        $entity = $this->paymentRepository->findOneByNumber($number)
-            ?? throw $this->createNotFoundException();
-
-        $state = $entity->getState();
-        if (PaymentState::Pending !== $state) {
-            throw new BadRequestHttpException(\sprintf('The payment "%s" has been %s.', $number, $state->value));
-        }
-
-        $gateway = $entity->getGateway()
-            ?? throw new BadRequestHttpException('Payment gateway error.');
-
-        try {
-            $result = $registry->get($gateway)->pay($entity);
-        } catch (UnsupportedGatewayException $th) {
-            throw new BadRequestHttpException($th->getMessage(), $th);
-        } catch (\Throwable $th) {
-            throw new BadRequestHttpException($th->getMessage());
-        }
-
-        if ($result->isSuccessful()) {
-            $entityManager->beginTransaction();
-
-            $entity->setDetails($result->getData());
-            $entity->setState(PaymentState::Succeed);
-            $eventDispatcher->dispatch(new PaymentSuccessEvent($entity));
-
-            $entityManager->flush();
-            $entityManager->commit();
-        }
-
-        return $this->json($result);
     }
 }

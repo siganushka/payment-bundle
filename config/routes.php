@@ -22,9 +22,4 @@ return static function (RoutingConfigurator $routes): void {
         ->controller([PaymentController::class, 'getItem'])
         ->methods(['GET'])
     ;
-
-    $routes->add('siganushka_payment_getitempay', '/payments/{number<[0-9a-zA-Z]+>}/pay')
-        ->controller([PaymentController::class, 'getItemPay'])
-        ->methods(['GET'])
-    ;
 };
