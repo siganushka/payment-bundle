@@ -41,9 +41,9 @@ class PaymentRepository extends GenericEntityRepository
         $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
 
         /** @var T|null */
-        $result = $query->getOneOrNullResult();
+        $entity = $query->getOneOrNullResult();
 
-        return $result;
+        return $entity;
     }
 
     public function createQueryBuilderByDto(string $alias, PaymentQueryDto $dto): QueryBuilder

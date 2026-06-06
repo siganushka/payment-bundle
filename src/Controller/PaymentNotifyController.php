@@ -39,9 +39,7 @@ class PaymentNotifyController extends AbstractController
 
         try {
             $result = $gateway->notify($request);
-            $callback = fn () => $this->handleNotify($result);
-
-            $this->entityManager->wrapInTransaction($callback);
+            $this->entityManager->wrapInTransaction(fn () => $this->handle($result));
 
             return $gateway->notifyResponse(true);
         } catch (\Throwable $th) {
@@ -51,12 +49,10 @@ class PaymentNotifyController extends AbstractController
         }
     }
 
-    private function handleNotify(NotifyResult $result): void
+    private function handle(NotifyResult $result): void
     {
-        $entity = $this->paymentRepository->findOneByNumberWithLock($result->getPaymentIdentifier());
-        if (!$entity) {
-            throw new \RuntimeException('Payment not found.');
-        }
+        $entity = $this->paymentRepository->findOneByNumberWithLock($result->getPaymentIdentifier())
+            ?? throw new \RuntimeException('Payment not found.');
 
         if ($entity->getAmount() !== $result->getAmount()) {
             throw new \RuntimeException('Payment notify amount invalid.');
