@@ -43,11 +43,11 @@ class PaymentNotifyController extends AbstractController
 
             $this->entityManager->wrapInTransaction($callback);
 
-            return $gateway->createNotifyResponse(true);
+            return $gateway->notifyResponse(true);
         } catch (\Throwable $th) {
             $this->logger->error('Payment notify error.', ['msg' => $th->getMessage()]);
 
-            return $gateway->createNotifyResponse(false, 'Invalid Request.');
+            return $gateway->notifyResponse(false, 'Invalid Request.');
         }
     }
 

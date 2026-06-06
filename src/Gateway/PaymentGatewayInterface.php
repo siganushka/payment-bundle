@@ -20,7 +20,7 @@ interface PaymentGatewayInterface
 
     public function notify(Request $request): NotifyResult;
 
-    public function createNotifyResponse(bool $successful, ?string $message = null): Response;
+    public function notifyResponse(bool $successful, ?string $message = null): Response;
 
     public function supports(Payment $payment): bool;
 }
