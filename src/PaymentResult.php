@@ -6,7 +6,9 @@ namespace Siganushka\PaymentBundle;
 
 class PaymentResult implements PaymentResultInterface
 {
-    public function __construct(private readonly bool $successful, private readonly mixed $data)
+    public function __construct(
+        private readonly bool $successful,
+        private readonly array $data)
     {
     }
 
@@ -15,7 +17,7 @@ class PaymentResult implements PaymentResultInterface
         return $this->successful;
     }
 
-    public function getData(): mixed
+    public function getData(): array
     {
         return $this->data;
     }

@@ -20,6 +20,7 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
     use TimestampableTrait;
 
     protected ?string $number = null;
+    protected ?string $title = null;
     protected ?int $amount = null;
     protected ?string $gateway = null;
     protected ?array $details = null;
@@ -35,6 +36,11 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
         $this->number = $number;
 
         return $this;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
     }
 
     public function getAmount(): ?int

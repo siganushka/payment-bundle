@@ -40,8 +40,8 @@ class PaymentController extends AbstractController
     public function postCollection(EntityManagerInterface $entityManager, PaymentGatewayRegistry $registry, PaymentFactoryInterface $factory, #[MapRequestPayload] PaymentCreateDto $dto): Response
     {
         try {
-            $registry->get($dto->gateway);
-        } catch (\Throwable $th) {
+            $gateway = $registry->get($dto->gateway);
+        } catch (UnsupportedGatewayException $th) {
             throw new BadRequestHttpException($th->getMessage(), $th);
         }
 
@@ -49,6 +49,10 @@ class PaymentController extends AbstractController
             $entity = $factory->createPayment($dto->type, $dto->identifier, $dto->gateway);
         } catch (\Throwable $th) {
             throw new BadRequestHttpException($th->getMessage(), $th);
+        }
+
+        if (!$gateway->supports($entity)) {
+            throw new BadRequestHttpException(\sprintf('The topup unsupported gateway "%s".', $dto->gateway));
         }
 
         $entityManager->persist($entity);
@@ -76,7 +80,7 @@ class PaymentController extends AbstractController
 
         $state = $entity->getState();
         if (PaymentState::Pending !== $state) {
-            throw new \RuntimeException(\sprintf('The payment "%s" has been %s.', $number, $state->value));
+            throw new BadRequestHttpException(\sprintf('The payment "%s" has been %s.', $number, $state->value));
         }
 
         $gateway = $entity->getGateway()
@@ -87,12 +91,13 @@ class PaymentController extends AbstractController
         } catch (UnsupportedGatewayException $th) {
             throw new BadRequestHttpException($th->getMessage(), $th);
         } catch (\Throwable $th) {
-            throw new BadRequestHttpException('Payment failed, please try again later.', $th);
+            throw new BadRequestHttpException($th->getMessage());
         }
 
         if ($result->isSuccessful()) {
             $entityManager->beginTransaction();
 
+            $entity->setDetails($result->getData());
             $entity->setState(PaymentState::Succeed);
             $eventDispatcher->dispatch(new PaymentSuccessEvent($entity));
 

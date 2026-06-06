@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Repository;
 
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\QueryBuilder;
 use Siganushka\GenericBundle\Repository\GenericEntityRepository;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
@@ -23,6 +24,26 @@ class PaymentRepository extends GenericEntityRepository
     public function findOneByNumber(string $number): ?Payment
     {
         return $this->findOneBy(compact('number'));
+    }
+
+    /**
+     * @return T|null
+     */
+    public function findOneByNumberWithLock(string $number): ?Payment
+    {
+        $queryBuilder = $this->createQueryBuilder('p')
+            ->where('p.number = :number')
+            ->setParameter('number', $number)
+            ->setMaxResults(1)
+        ;
+
+        $query = $queryBuilder->getQuery();
+        $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
+
+        /** @var T|null */
+        $result = $query->getOneOrNullResult();
+
+        return $result;
     }
 
     public function createQueryBuilderByDto(string $alias, PaymentQueryDto $dto): QueryBuilder

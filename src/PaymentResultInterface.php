@@ -8,5 +8,5 @@ interface PaymentResultInterface
 {
     public function isSuccessful(): bool;
 
-    public function getData(): mixed;
+    public function getData(): array;
 }

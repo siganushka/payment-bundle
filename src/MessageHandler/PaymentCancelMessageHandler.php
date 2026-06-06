@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\MessageHandler;
 
-use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
-use Siganushka\PaymentBundle\Entity\Payment;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Message\PaymentCancelMessage;
 use Siganushka\PaymentBundle\Repository\PaymentRepository;
@@ -27,17 +25,8 @@ final class PaymentCancelMessageHandler
         $this->entityManager->beginTransaction();
 
         try {
-            $queryBuilder = $this->paymentRepository->createQueryBuilder('p')
-                ->where('p.number = :number')
-                ->setParameter('number', $message->getNumber())
-                ->setMaxResults(1)
-            ;
-
-            $query = $queryBuilder->getQuery();
-            $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
-
-            $entity = $query->getOneOrNullResult();
-            if (!$entity instanceof Payment) {
+            $entity = $this->paymentRepository->findOneByNumberWithLock($message->getNumber());
+            if (!$entity) {
                 throw new UnrecoverableMessageHandlingException('Payment not found.');
             }
 
