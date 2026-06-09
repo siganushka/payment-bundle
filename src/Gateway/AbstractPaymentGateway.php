@@ -20,6 +20,11 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
         return true;
     }
 
+    public function __toString(): string
+    {
+        return static::getName();
+    }
+
     protected function generateNotifyUrl(UrlGeneratorInterface $generator): string
     {
         $gateway = static::getName();

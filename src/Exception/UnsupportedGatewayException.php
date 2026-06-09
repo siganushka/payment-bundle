@@ -25,4 +25,9 @@ class UnsupportedGatewayException extends \InvalidArgumentException
     {
         return $this->gateway;
     }
+
+    public function getSafeMessage(): string
+    {
+        return \sprintf('The gateway "%s" is not supported.', $this->gateway);
+    }
 }

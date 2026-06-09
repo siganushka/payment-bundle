@@ -9,14 +9,18 @@ use Knp\Component\Pager\PaginatorInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Siganushka\PaymentBundle\Dto\PaymentCreateDto;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
+use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Factory\PaymentFactoryInterface;
+use Siganushka\PaymentBundle\Form\PaymentRefundType;
+use Siganushka\PaymentBundle\Gateway\NotifiableGatewayInterface;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 use Siganushka\PaymentBundle\Repository\PaymentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -43,8 +47,7 @@ class PaymentController extends AbstractController
         EntityManagerInterface $entityManager,
         PaymentGatewayRegistry $registry,
         PaymentFactoryInterface $factory,
-        #[MapRequestPayload]
-        PaymentCreateDto $dto): Response
+        #[MapRequestPayload] PaymentCreateDto $dto): Response
     {
         try {
             $entity = $factory->createPayment($dto->type, $dto->identifier, $dto->gateway);
@@ -66,17 +69,18 @@ class PaymentController extends AbstractController
         $entityManager->flush();
 
         try {
-            $result = $gateway->pay($entity);
-            if ($result->isSuccessful()) {
-                $entity->setDetails($result->getData());
-                $entity->setState(PaymentState::Succeed);
-                $eventDispatcher->dispatch(new PaymentSuccessEvent($entity));
-                $entityManager->flush();
+            $data = $gateway->pay($entity);
+            if ($gateway instanceof NotifiableGatewayInterface) {
+                return $this->json($data);
             }
 
-            return $this->json($result);
+            $entity->setState(PaymentState::Succeed);
+            $eventDispatcher->dispatch(new PaymentSuccessEvent($entity));
+            $entityManager->flush();
+
+            return $this->json($data);
         } catch (\Throwable $th) {
-            $entity->setDetails(['msg' => $th->getMessage()]);
+            $entity->setFailedReason($th->getMessage());
             $entity->setState(PaymentState::Failed);
             $eventDispatcher->dispatch(new PaymentFailureEvent($entity));
             $entityManager->flush();
@@ -93,5 +97,39 @@ class PaymentController extends AbstractController
         return $this->json($entity, context: [
             'groups' => ['payment.item'],
         ]);
+    }
+
+    public function postRefunds(Request $request, EntityManagerInterface $entityManager, PaymentGatewayRegistry $registry, string $number): Response
+    {
+        $entity = $this->paymentRepository->findOneByNumber($number)
+            ?? throw $this->createNotFoundException();
+
+        if (null === $entity->getGateway() || null === $entity->getAmount()) {
+            throw new BadRequestHttpException('Invalid request.');
+        }
+
+        $refund = new PaymentRefund();
+
+        $form = $this->createForm(PaymentRefundType::class, $refund, ['max_amount' => $entity->getAmount()]);
+        $form->submit($request->getPayload()->all());
+
+        if (!$form->isValid()) {
+            return $this->json($form, Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        try {
+            $data = $registry->get($entity->getGateway())->refund($entity);
+
+            $refund->setSuccessful(true);
+            $entityManager->flush();
+
+            return $this->json($data);
+        } catch (\Throwable $th) {
+            $refund->setSuccessful(false);
+            $refund->setFailedReason($th->getMessage());
+            $entityManager->flush();
+
+            throw new BadRequestHttpException($th->getMessage(), $th);
+        }
     }
 }

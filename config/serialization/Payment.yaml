@@ -8,11 +8,15 @@ Siganushka\PaymentBundle\Entity\Payment:
             groups: [payment.item, payment.collection]
         amount:
             groups: [payment.item, payment.collection]
+        refundAmount:
+            groups: [payment.item, payment.collection]
         gateway:
             groups: [payment.item, payment.collection]
         details:
             groups: [payment.item, payment.collection]
         state:
+            groups: [payment.item, payment.collection]
+        failedReason:
             groups: [payment.item, payment.collection]
         type:
             groups: [payment.item, payment.collection]

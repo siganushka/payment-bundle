@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Siganushka\Contracts\Doctrine\ExpirableInterface;
 use Siganushka\Contracts\Doctrine\ExpirableTrait;
 use Siganushka\Contracts\Doctrine\ResourceInterface;
@@ -22,9 +24,21 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
     protected ?string $number = null;
     protected ?string $title = null;
     protected ?int $amount = null;
+    protected ?int $refundAmount = null;
     protected ?string $gateway = null;
     protected ?array $details = null;
     protected PaymentState $state = PaymentState::Pending;
+    protected ?string $failedReason = null;
+
+    /**
+     * @var Collection<int, PaymentRefund>
+     */
+    protected Collection $refunds;
+
+    public function __construct()
+    {
+        $this->refunds = new ArrayCollection();
+    }
 
     public function getNumber(): ?string
     {
@@ -48,6 +62,11 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
         return $this->amount;
     }
 
+    public function getRefundAmount(): ?int
+    {
+        return $this->refundAmount;
+    }
+
     public function getGateway(): ?string
     {
         return $this->gateway;
@@ -65,9 +84,21 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
         return $this->details;
     }
 
-    public function setDetails(array $details): static
+    public function setDetails(?array $details): static
     {
         $this->details = $details;
+
+        return $this;
+    }
+
+    public function getFailedReason(): ?string
+    {
+        return $this->failedReason;
+    }
+
+    public function setFailedReason(string $failedReason): static
+    {
+        $this->failedReason = $failedReason;
 
         return $this;
     }
@@ -84,6 +115,37 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
         return $this;
     }
 
+    /**
+     * @return Collection<int, PaymentRefund>
+     */
+    public function getRefunds(): Collection
+    {
+        return $this->refunds;
+    }
+
+    public function addRefund(PaymentRefund $refund): static
+    {
+        if (!$this->refunds->contains($refund)) {
+            $this->refundAmount += $refund->getAmount();
+            $this->refunds[] = $refund;
+            $refund->setPayment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRefund(PaymentRefund $refund): static
+    {
+        if ($this->refunds->removeElement($refund)) {
+            $this->refundAmount -= $refund->getAmount();
+            if ($refund->getPayment() === $this) {
+                $refund->setPayment(null);
+            }
+        }
+
+        return $this;
+    }
+
     public function getType(): string
     {
         return ClassUtils::generateAlias($this);
@@ -91,7 +153,7 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
 
     public function validate(): void
     {
-        if (null !== $this->amount && $this->amount <= 0) {
+        if (\is_int($this->amount) && $this->amount <= 0) {
             throw new \InvalidArgumentException('The payment amount must be greater than 0.');
         }
     }

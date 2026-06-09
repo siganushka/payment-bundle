@@ -23,7 +23,9 @@ final class PaymentCancelMessageHandler
     {
         $this->entityManager->wrapInTransaction(function () use ($message) {
             $entity = $this->paymentRepository->findOneByNumberWithLock($message->getNumber());
-            $entity?->setState(PaymentState::Cancelled);
+            if ($entity && PaymentState::Pending === $entity->getState()) {
+                $entity->setState(PaymentState::Cancelled);
+            }
         });
     }
 }
