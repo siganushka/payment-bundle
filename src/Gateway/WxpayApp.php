@@ -8,7 +8,7 @@ use Siganushka\ApiFactory\Wxpay\ParameterUtils;
 use Siganushka\PaymentBundle\Entity\Payment;
 use Siganushka\PaymentBundle\Result\PaymentResult;
 
-class WxpayJsapi extends AbstractWxpay
+class WxpayApp extends AbstractWxpay
 {
     public function __construct(private readonly ParameterUtils $parameterUtils)
     {
@@ -19,7 +19,7 @@ class WxpayJsapi extends AbstractWxpay
         $result = $this->doPay($payment);
         $prepay_id = $result['prepay_id'] ?? null;
 
-        $data = $this->parameterUtils->jsapi(compact('prepay_id'));
+        $data = $this->parameterUtils->app(compact('prepay_id'));
 
         return new PaymentResult($data, $result, false);
     }

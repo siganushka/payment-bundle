@@ -23,6 +23,11 @@ return static function (RoutingConfigurator $routes): void {
         ->methods(['GET'])
     ;
 
+    $routes->add('siganushka_payment_getrefunds', '/payments/{number<[0-9a-zA-Z]+>}/refunds')
+        ->controller([PaymentController::class, 'getRefunds'])
+        ->methods(['GET'])
+    ;
+
     $routes->add('siganushka_payment_postrefunds', '/payments/{number<[0-9a-zA-Z]+>}/refunds')
         ->controller([PaymentController::class, 'postRefunds'])
         ->methods(['POST'])

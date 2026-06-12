@@ -20,6 +20,7 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
     protected ?array $details = null;
     protected bool $successful = false;
     protected ?string $failedReason = null;
+    protected ?string $note = null;
 
     public function getPayment(): ?Payment
     {
@@ -31,6 +32,14 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
         $this->payment = $payment;
 
         return $this;
+    }
+
+    public function getRefundableAmount(): ?int
+    {
+        $paid = $this->payment?->getAmount();
+        $refunded = $this->payment?->getRefundAmount();
+
+        return \is_int($paid) && \is_int($refunded) ? $paid - $refunded : null;
     }
 
     public function getNumber(): ?string
@@ -69,18 +78,6 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
         return $this;
     }
 
-    public function getFailedReason(): ?string
-    {
-        return $this->failedReason;
-    }
-
-    public function setFailedReason(string $failedReason): static
-    {
-        $this->failedReason = $failedReason;
-
-        return $this;
-    }
-
     public function isSuccessful(): bool
     {
         return $this->successful;
@@ -89,6 +86,30 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
     public function setSuccessful(bool $successful): static
     {
         $this->successful = $successful;
+
+        return $this;
+    }
+
+    public function getFailedReason(): ?string
+    {
+        return $this->failedReason;
+    }
+
+    public function setFailedReason(?string $failedReason): static
+    {
+        $this->failedReason = $failedReason;
+
+        return $this;
+    }
+
+    public function getNote(): ?string
+    {
+        return $this->note;
+    }
+
+    public function setNote(?string $note): static
+    {
+        $this->note = $note;
 
         return $this;
     }

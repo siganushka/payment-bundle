@@ -20,13 +20,13 @@ class PaymentCancelMessageListener
     public function __invoke(Payment $entity): void
     {
         $number = $entity->getNumber();
-        if (null === $number || PaymentState::Pending !== $entity->getState() || !$expiredAt = $entity->getExpiredAt()) {
+        if (!$number || PaymentState::Pending !== $entity->getState() || !$entity->getExpiredAt()) {
             return;
         }
 
         $message = new PaymentCancelMessage($number);
         $envelope = (new Envelope($message))
-            ->with(DelayStamp::delayUntil($expiredAt))
+            ->with(DelayStamp::delayUntil($entity->getExpiredAt()))
         ;
 
         $this->messageBus->dispatch($envelope);

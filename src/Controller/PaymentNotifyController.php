@@ -7,14 +7,14 @@ namespace Siganushka\PaymentBundle\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
+use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
-use Siganushka\PaymentBundle\Gateway\NotifiableGatewayInterface;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 use Siganushka\PaymentBundle\Repository\PaymentRepository;
-use Siganushka\PaymentBundle\Result\PayNotifyResult;
+use Siganushka\PaymentBundle\Result\NotifyResult;
 use Siganushka\PaymentBundle\Result\RefundNotifyResult;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +32,7 @@ class PaymentNotifyController extends AbstractController
 
     public function notify(Request $request, PaymentGatewayRegistry $registry, string $gateway): Response
     {
-        $this->logger->info('The gateway notify has been triggered.', compact('gateway'));
+        $this->logger->info('The payment notify has been triggered.', compact('gateway'));
 
         try {
             $gateway = $registry->get($gateway);
@@ -40,16 +40,11 @@ class PaymentNotifyController extends AbstractController
             return new Response($th->getSafeMessage());
         }
 
-        if (!$gateway instanceof NotifiableGatewayInterface) {
-            return new Response(\sprintf('The gateway "%s" is not supported notify.', $gateway));
-        }
-
         try {
             $result = $gateway->notify($request);
             $callback = match (true) {
-                $result instanceof PayNotifyResult => fn () => $this->handlePay($result),
                 $result instanceof RefundNotifyResult => fn () => $this->handleRefund($result),
-                default => throw new \InvalidArgumentException('Unexpected value.'),
+                default => fn () => $this->handlePay($result),
             };
 
             $this->entityManager->wrapInTransaction($callback);
@@ -62,7 +57,7 @@ class PaymentNotifyController extends AbstractController
         }
     }
 
-    private function handlePay(PayNotifyResult $result): void
+    private function handlePay(NotifyResult $result): void
     {
         $entity = $this->paymentRepository->findOneByNumberWithLock($result->getNumber())
             ?? throw new \RuntimeException('Payment not found.');
@@ -88,5 +83,20 @@ class PaymentNotifyController extends AbstractController
     private function handleRefund(RefundNotifyResult $result): void
     {
         $this->logger->debug(__METHOD__, get_object_vars($result));
+
+        $number = $result->getNumber();
+        $entity = $this->entityManager->getRepository(PaymentRefund::class)->findOneBy(compact('number'))
+            ?? throw new \RuntimeException('Payment not found.');
+
+        if ($entity->getAmount() !== $result->getAmount()) {
+            throw new \RuntimeException('Payment refund notify amount invalid.');
+        }
+
+        if ($entity->isSuccessful()) {
+            return;
+        }
+
+        $entity->setDetails($result->getDetails());
+        $entity->setSuccessful($result->isSuccessful());
     }
 }

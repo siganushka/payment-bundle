@@ -31,6 +31,13 @@
     <field name="createdAt" type="datetime_immutable" />
     <field name="updatedAt" type="datetime_immutable" nullable="true" />
 
-    <one-to-many field="refunds" target-entity="Siganushka\PaymentBundle\Entity\PaymentRefund" mapped-by="payment" />
+    <one-to-many field="refunds" target-entity="Siganushka\PaymentBundle\Entity\PaymentRefund" mapped-by="payment" orphan-removal="true">
+      <order-by>
+        <order-by-field name="id" direction="DESC" />
+      </order-by>
+      <cascade>
+        <cascade-all/>
+      </cascade>
+    </one-to-many>
   </entity>
 </doctrine-mapping>
