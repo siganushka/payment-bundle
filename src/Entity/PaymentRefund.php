@@ -39,7 +39,7 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
         $paid = $this->payment?->getAmount();
         $refunded = $this->payment?->getRefundAmount();
 
-        return \is_int($paid) && \is_int($refunded) ? $paid - $refunded : null;
+        return null === $paid ? null : $paid - $refunded;
     }
 
     public function getNumber(): ?string

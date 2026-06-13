@@ -18,6 +18,9 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractAlipay extends AbstractPaymentGateway
 {
+    public const PAY_OPTIONS = 'alipay_pay_options';
+    public const REFUND_OPTIONS = 'alipay_refund_options';
+
     #[Required]
     public Refund $alipayRefund;
     #[Required]

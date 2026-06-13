@@ -130,7 +130,7 @@ class PaymentController extends AbstractController
         $refund->setNumber($refundNumber);
         $refund->setPayment($entity);
 
-        if (!$refund->getRefundableAmount()) {
+        if (null !== $refund->getRefundableAmount()) {
             throw new BadRequestHttpException('The payment has been fully refunded.');
         }
 

@@ -20,6 +20,9 @@ use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractWxpay extends AbstractPaymentGateway
 {
+    public const PAY_OPTIONS = 'wxpay_pay_options';
+    public const REFUND_OPTIONS = 'wxpay_refund_options';
+
     #[Required]
     public UrlGeneratorInterface $generator;
     #[Required]
@@ -34,12 +37,12 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
 
     public function refund(Payment $payment, PaymentRefund $refund): PaymentResult
     {
-        $options = [
+        $options = array_merge([
             'out_trade_no' => $payment->getNumber(),
             'total_fee' => $payment->getAmount(),
             'out_refund_no' => $refund->getNumber(),
             'refund_fee' => $refund->getAmount(),
-        ];
+        ], $payment->resolveContext()[self::REFUND_OPTIONS] ?? []);
 
         $result = $this->wxpayRefund->send($options);
 
@@ -77,17 +80,17 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
             : $this->notifyHandler->fail(...), $message);
     }
 
-    protected function doPay(Payment $payment, array $options = []): array
+    protected function doPay(Payment $payment): array
     {
-        $mergedOptions = array_merge([
+        $options = array_merge([
             'body' => $payment->getTitle(),
             'out_trade_no' => $payment->getNumber(),
             'total_fee' => $payment->getAmount(),
             'trade_type' => $this->getTradeType(),
             'notify_url' => $this->generateNotifyUrl($this->generator),
-        ], $options);
+        ], $payment->resolveContext()[self::PAY_OPTIONS] ?? []);
 
-        return $this->unifiedorder->send($mergedOptions);
+        return $this->unifiedorder->send($options);
     }
 
     abstract protected function getTradeType(): string;

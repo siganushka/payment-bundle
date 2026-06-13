@@ -157,4 +157,9 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
             throw new \InvalidArgumentException('The payment amount must be greater than 0.');
         }
     }
+
+    public function resolveContext(): array
+    {
+        return [];
+    }
 }
