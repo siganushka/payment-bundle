@@ -1,7 +1,5 @@
 Siganushka\PaymentBundle\Entity\Payment:
     attributes:
-        id:
-            groups: []
         number:
             groups: [payment.item, payment.collection]
         title:
@@ -12,8 +10,6 @@ Siganushka\PaymentBundle\Entity\Payment:
             groups: [payment.item, payment.collection]
         gateway:
             groups: [payment.item, payment.collection]
-        details:
-            groups: []
         state:
             groups: [payment.item, payment.collection]
         failedReason:
