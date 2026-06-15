@@ -42,12 +42,10 @@ class PaymentNotifyController extends AbstractController
 
         try {
             $result = $gateway->notify($request);
-            $callback = match (true) {
-                $result instanceof RefundNotifyResult => fn () => $this->handleRefund($result),
-                default => fn () => $this->handlePay($result),
-            };
 
-            $this->entityManager->wrapInTransaction($callback);
+            $this->entityManager->wrapInTransaction($result instanceof RefundNotifyResult
+                ? fn () => $this->handleRefund($result)
+                : fn () => $this->handlePay($result));
 
             return $gateway->notifyResponse(true);
         } catch (\Throwable $th) {
@@ -82,11 +80,9 @@ class PaymentNotifyController extends AbstractController
 
     private function handleRefund(RefundNotifyResult $result): void
     {
-        $this->logger->debug(__METHOD__, get_object_vars($result));
-
         $number = $result->getNumber();
         $entity = $this->entityManager->getRepository(PaymentRefund::class)->findOneBy(compact('number'))
-            ?? throw new \RuntimeException('Payment not found.');
+            ?? throw new \RuntimeException('Payment refund not found.');
 
         if ($entity->getAmount() !== $result->getAmount()) {
             throw new \RuntimeException('Payment refund notify amount invalid.');

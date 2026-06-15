@@ -38,7 +38,7 @@ class PaymentController extends AbstractController
         $pagination = $paginator->paginate($queryBuilder);
 
         return $this->json($pagination, context: [
-            'groups' => ['payment.collection'],
+            AbstractNormalizer::GROUPS => ['payment.collection'],
         ]);
     }
 
@@ -99,7 +99,7 @@ class PaymentController extends AbstractController
             ?? throw $this->createNotFoundException();
 
         return $this->json($entity, context: [
-            'groups' => ['payment.item'],
+            AbstractNormalizer::GROUPS => ['payment.item'],
         ]);
     }
 
@@ -109,7 +109,7 @@ class PaymentController extends AbstractController
             ?? throw $this->createNotFoundException();
 
         return $this->json($entity->getRefunds(), context: [
-            'groups' => ['payment_refund.collection'],
+            AbstractNormalizer::GROUPS => ['payment_refund.collection'],
         ]);
     }
 
@@ -151,8 +151,12 @@ class PaymentController extends AbstractController
             $entity->addRefund($refund);
             $entityManager->flush();
 
+            if ($data = $result->getData()) {
+                return $this->json($data);
+            }
+
             return $this->json($refund, context: [
-                'groups' => ['payment_refund.item'],
+                AbstractNormalizer::GROUPS => ['payment_refund.item'],
             ]);
         } catch (\Throwable $th) {
             $refund->setSuccessful(false);
