@@ -7,12 +7,14 @@ namespace Siganushka\PaymentBundle\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 use Siganushka\PaymentBundle\Dto\PaymentCreateDto;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
 use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
+use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Factory\PaymentFactoryInterface;
 use Siganushka\PaymentBundle\Form\PaymentRefundType;
@@ -28,26 +30,25 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 class PaymentController extends AbstractController
 {
-    public function __construct(private readonly PaymentRepository $paymentRepository)
+    public function __construct(
+        private readonly LoggerInterface $logger,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly PaymentRepository $paymentRepository)
     {
     }
 
     public function getCollection(PaginatorInterface $paginator, #[MapQueryString] PaymentQueryDto $dto): Response
     {
-        $queryBuilder = $this->paymentRepository->createQueryBuilderByDto('t', $dto);
-        $pagination = $paginator->paginate($queryBuilder);
+        $qb = $this->paymentRepository->createQueryBuilderByDto('t', $dto);
+        $pagination = $paginator->paginate($qb);
 
         return $this->json($pagination, context: [
             AbstractNormalizer::GROUPS => ['payment.collection'],
         ]);
     }
 
-    public function postCollection(
-        EventDispatcherInterface $eventDispatcher,
-        EntityManagerInterface $entityManager,
-        PaymentGatewayRegistry $registry,
-        PaymentFactoryInterface $factory,
-        #[MapRequestPayload] PaymentCreateDto $dto): Response
+    public function postCollection(PaymentGatewayRegistry $registry, PaymentFactoryInterface $factory, #[MapRequestPayload] PaymentCreateDto $dto): Response
     {
         try {
             $entity = $factory->createPayment($dto->type, $dto->identifier, $dto->gateway);
@@ -65,31 +66,31 @@ class PaymentController extends AbstractController
             throw new BadRequestHttpException(\sprintf('The payment unsupported gateway "%s".', $dto->gateway));
         }
 
-        $entityManager->persist($entity);
+        // Persist to generate number.
+        $this->entityManager->persist($entity);
 
         try {
             $result = $gateway->pay($entity);
-            if ($result->isCompleted()) {
-                $entity->setDetails($result->getDetails());
-                $entity->setState(PaymentState::Succeed);
-                $eventDispatcher->dispatch(new PaymentSuccessEvent($entity));
+            if (PaymentState::Succeed === $entity->getState()) {
+                $this->eventDispatcher->dispatch(new PaymentSuccessEvent($entity));
             }
 
-            $entityManager->flush();
-            if ($data = $result->getData()) {
-                return $this->json($data);
-            }
+            $this->entityManager->flush();
 
-            return $this->json($entity, context: [
-                AbstractNormalizer::GROUPS => ['payment.item'],
-            ]);
+            return $this->json($result);
         } catch (\Throwable $th) {
-            $entity->setFailedReason($th->getMessage());
-            $entity->setState(PaymentState::Failed);
-            $eventDispatcher->dispatch(new PaymentFailureEvent($entity));
-            $entityManager->flush();
+            if ($th instanceof PaymentFailedException) {
+                $entity->setState(PaymentState::Failed);
+                $entity->setDetails($th->getDetails());
+                $entity->setFailedReason($th->getMessage());
+                $this->eventDispatcher->dispatch(new PaymentFailureEvent($entity));
+                $this->entityManager->flush();
+            }
 
-            throw new BadRequestHttpException($th->getMessage(), $th);
+            $error = $th->getMessage();
+            $this->logger->error(__METHOD__, compact('error'));
+
+            throw new BadRequestHttpException('Payment failed, please try again.', $th);
         }
     }
 
@@ -113,22 +114,27 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    public function postRefunds(Request $request, EntityManagerInterface $entityManager, PaymentGatewayRegistry $registry, string $number): Response
+    public function postRefunds(Request $request, PaymentGatewayRegistry $registry, string $number): Response
     {
         $entity = $this->paymentRepository->findOneByNumber($number)
             ?? throw $this->createNotFoundException();
 
-        $gateway = $entity->getGateway();
-        if (!$gateway || PaymentState::Succeed !== $entity->getState()) {
+        if (PaymentState::Succeed !== $entity->getState()) {
             throw new BadRequestHttpException('The payment is non-refundable.');
+        }
+
+        try {
+            $gateway = $registry->get($entity->getGateway() ?? '');
+        } catch (UnsupportedGatewayException $th) {
+            throw new BadRequestHttpException($th->getMessage(), $th);
         }
 
         $refundCount = \count($entity->getRefunds());
         $refundNumber = \sprintf('%s%02d', $entity->getNumber(), ++$refundCount);
 
         $refund = new PaymentRefund();
-        $refund->setNumber($refundNumber);
         $refund->setPayment($entity);
+        $refund->setNumber($refundNumber);
 
         $refundable = $refund->getRefundableAmount();
         if (null !== $refundable && $refundable <= 0) {
@@ -142,29 +148,29 @@ class PaymentController extends AbstractController
             return $this->json($form, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        // Persist to generate number.
+        $this->entityManager->persist($refund);
+
         try {
-            $result = $registry->get($gateway)->refund($entity, $refund);
-            if ($result->isCompleted()) {
-                $refund->setDetails($result->getDetails());
-                $refund->setSuccessful(true);
-            }
-
+            $gateway->refund($entity, $refund);
             $entity->addRefund($refund);
-            $entityManager->flush();
-
-            if ($data = $result->getData()) {
-                return $this->json($data);
-            }
+            $this->entityManager->flush();
 
             return $this->json($refund, context: [
                 AbstractNormalizer::GROUPS => ['payment_refund.item'],
             ]);
         } catch (\Throwable $th) {
-            $refund->setSuccessful(false);
-            $refund->setFailedReason($th->getMessage());
-            $entityManager->flush();
+            if ($th instanceof PaymentFailedException) {
+                $refund->setDetails($th->getDetails());
+                $refund->setSuccessful(false);
+                $refund->setFailedReason($th->getMessage());
+                $this->entityManager->flush();
+            }
 
-            throw new BadRequestHttpException($th->getMessage(), $th);
+            $error = $th->getMessage();
+            $this->logger->error(__METHOD__, compact('error'));
+
+            throw new BadRequestHttpException('Refund failed, please try again.', $th);
         }
     }
 }

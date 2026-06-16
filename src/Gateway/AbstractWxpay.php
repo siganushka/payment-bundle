@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Gateway;
 
+use Siganushka\ApiFactory\Exception\ParseResponseException;
 use Siganushka\ApiFactory\Wxpay\NotifyHandler;
 use Siganushka\ApiFactory\Wxpay\Refund;
 use Siganushka\ApiFactory\Wxpay\Unifiedorder;
 use Siganushka\PaymentBundle\Entity\Payment;
 use Siganushka\PaymentBundle\Entity\PaymentRefund;
+use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Result\NotifyResult;
-use Siganushka\PaymentBundle\Result\PaymentResult;
 use Siganushka\PaymentBundle\Result\RefundNotifyResult;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,18 +36,20 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
     #[Autowire(param: 'kernel.debug')]
     public bool $debug;
 
-    public function refund(Payment $payment, PaymentRefund $refund): PaymentResult
+    public function refund(Payment $payment, PaymentRefund $refund): array
     {
         $options = array_merge([
             'out_trade_no' => $payment->getNumber(),
             'total_fee' => $payment->getAmount(),
             'out_refund_no' => $refund->getNumber(),
             'refund_fee' => $refund->getAmount(),
-        ], $payment->resolveContext()[self::REFUND_OPTIONS] ?? []);
+        ], $payment->context()[self::REFUND_OPTIONS] ?? []);
 
-        $result = $this->wxpayRefund->send($options);
-
-        return new PaymentResult(null, $result, false);
+        try {
+            return $this->wxpayRefund->send($options);
+        } catch (ParseResponseException $th) {
+            throw new PaymentFailedException($th->getMessage(), $th->getResponseData());
+        }
     }
 
     public function notify(Request $request): NotifyResult
@@ -88,7 +91,7 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
             'total_fee' => $payment->getAmount(),
             'trade_type' => $this->getTradeType(),
             'notify_url' => $this->generateNotifyUrl($this->generator),
-        ], $payment->resolveContext()[self::PAY_OPTIONS] ?? []);
+        ], $payment->context()[self::PAY_OPTIONS] ?? []);
 
         return $this->unifiedorder->send($options);
     }

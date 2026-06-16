@@ -7,7 +7,6 @@ namespace Siganushka\PaymentBundle\Gateway;
 use Siganushka\PaymentBundle\Entity\Payment;
 use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Result\NotifyResult;
-use Siganushka\PaymentBundle\Result\PaymentResult;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,9 +16,9 @@ interface PaymentGatewayInterface extends \Stringable
 
     public function supports(Payment $payment): bool;
 
-    public function pay(Payment $payment): PaymentResult;
+    public function pay(Payment $payment): array;
 
-    public function refund(Payment $payment, PaymentRefund $refund): PaymentResult;
+    public function refund(Payment $payment, PaymentRefund $refund): array;
 
     public function notify(Request $request): NotifyResult;
 

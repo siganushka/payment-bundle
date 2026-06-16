@@ -6,7 +6,6 @@ namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Wxpay\ParameterUtils;
 use Siganushka\PaymentBundle\Entity\Payment;
-use Siganushka\PaymentBundle\Result\PaymentResult;
 
 class WxpayJsapi extends AbstractWxpay
 {
@@ -14,14 +13,14 @@ class WxpayJsapi extends AbstractWxpay
     {
     }
 
-    public function pay(Payment $payment): PaymentResult
+    public function pay(Payment $payment): array
     {
         $result = $this->doPay($payment);
         $prepay_id = $result['prepay_id'] ?? null;
 
         $data = $this->parameterUtils->jsapi(compact('prepay_id'));
 
-        return new PaymentResult($data, $result, false);
+        return $data;
     }
 
     protected function getTradeType(): string

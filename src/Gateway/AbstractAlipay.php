@@ -6,10 +6,11 @@ namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Alipay\NotifyHandler;
 use Siganushka\ApiFactory\Alipay\Refund;
+use Siganushka\ApiFactory\Exception\ParseResponseException;
 use Siganushka\PaymentBundle\Entity\Payment;
 use Siganushka\PaymentBundle\Entity\PaymentRefund;
+use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Result\NotifyResult;
-use Siganushka\PaymentBundle\Result\PaymentResult;
 use Siganushka\PaymentBundle\Result\RefundNotifyResult;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,16 +30,18 @@ abstract class AbstractAlipay extends AbstractPaymentGateway
     #[Autowire(param: 'kernel.debug')]
     public bool $debug;
 
-    public function refund(Payment $payment, PaymentRefund $refund): PaymentResult
+    public function refund(Payment $payment, PaymentRefund $refund): array
     {
         $options = [
             'out_trade_no' => $payment->getNumber(),
             'refund_amount_as_cents' => $refund->getAmount(),
         ];
 
-        $result = $this->alipayRefund->send($options);
-
-        return new PaymentResult(null, $result, false);
+        try {
+            return $this->alipayRefund->send($options);
+        } catch (ParseResponseException $th) {
+            throw new PaymentFailedException($th->getMessage(), $th->getResponseData());
+        }
     }
 
     public function notify(Request $request): NotifyResult

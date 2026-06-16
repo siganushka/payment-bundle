@@ -6,7 +6,6 @@ namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Alipay\PagePayUtils;
 use Siganushka\PaymentBundle\Entity\Payment;
-use Siganushka\PaymentBundle\Result\PaymentResult;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class AlipayPage extends AbstractAlipay
@@ -17,7 +16,7 @@ class AlipayPage extends AbstractAlipay
     {
     }
 
-    public function pay(Payment $payment): PaymentResult
+    public function pay(Payment $payment): array
     {
         $options = [
             'subject' => $payment->getTitle(),
@@ -28,8 +27,7 @@ class AlipayPage extends AbstractAlipay
         ];
 
         $url = $this->pagePayUtils->url($options);
-        $data = compact('url');
 
-        return new PaymentResult($data, null, false);
+        return compact('url');
     }
 }

@@ -10,11 +10,6 @@
       <unique-constraint columns="number" />
     </unique-constraints>
 
-    <lifecycle-callbacks>
-      <lifecycle-callback type="prePersist" method="validate" />
-      <lifecycle-callback type="preUpdate" method="validate" />
-    </lifecycle-callbacks>
-
     <id name="id" type="integer">
       <generator strategy="AUTO"/>
     </id>

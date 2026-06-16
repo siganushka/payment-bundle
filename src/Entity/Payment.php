@@ -126,7 +126,7 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
     public function addRefund(PaymentRefund $refund): static
     {
         if (!$this->refunds->contains($refund)) {
-            $this->refundAmount += $refund->getAmount();
+            $this->refundAmount += $refund->isSuccessful() ? $refund->getAmount() : 0;
             $this->refunds[] = $refund;
             $refund->setPayment($this);
         }
@@ -137,7 +137,7 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
     public function removeRefund(PaymentRefund $refund): static
     {
         if ($this->refunds->removeElement($refund)) {
-            $this->refundAmount -= $refund->getAmount();
+            $this->refundAmount -= $refund->isSuccessful() ? $refund->getAmount() : 0;
             if ($refund->getPayment() === $this) {
                 $refund->setPayment(null);
             }
@@ -151,14 +151,7 @@ abstract class Payment implements ResourceInterface, ExpirableInterface, Timesta
         return ClassUtils::generateAlias($this);
     }
 
-    public function validate(): void
-    {
-        if (\is_int($this->amount) && $this->amount <= 0) {
-            throw new \InvalidArgumentException('The payment amount must be greater than 0.');
-        }
-    }
-
-    public function resolveContext(): array
+    public function context(): array
     {
         return [];
     }
