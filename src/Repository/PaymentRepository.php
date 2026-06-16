@@ -40,13 +40,13 @@ class PaymentRepository extends GenericEntityRepository
      */
     public function findOneByNumberWithLock(string $number): ?Payment
     {
-        $queryBuilder = $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->where('p.number = :number')
             ->setParameter('number', $number)
             ->setMaxResults(1)
         ;
 
-        $query = $queryBuilder->getQuery();
+        $query = $qb->getQuery();
         $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
 
         /** @var T|null */
@@ -57,7 +57,7 @@ class PaymentRepository extends GenericEntityRepository
 
     public function createQueryBuilderByDto(string $alias, PaymentQueryDto $dto): QueryBuilder
     {
-        $criteria = Criteria::create(true);
+        $criteria = new Criteria(firstResult: 0, accessRawFieldValues: true);
 
         if ($dto->number) {
             $criteria->andWhere(Criteria::expr()->contains('number', $dto->number));
@@ -79,15 +79,15 @@ class PaymentRepository extends GenericEntityRepository
             $criteria->andWhere(Criteria::expr()->lte('createdAt', $dto->created->endAt));
         }
 
-        $queryBuilder = $this->createQueryBuilderWithOrderBy($alias);
-        $queryBuilder->addCriteria($criteria);
+        $qb = $this->createQueryBuilderWithOrderBy($alias);
+        $qb->addCriteria($criteria);
 
         if ($dto->dtype) {
-            $queryBuilder->andWhere(\sprintf('%s INSTANCE OF :dtype', $alias))
+            $qb->andWhere(\sprintf('%s INSTANCE OF :dtype', $alias))
                 ->setParameter('dtype', $dto->dtype)
             ;
         }
 
-        return $queryBuilder;
+        return $qb;
     }
 }
