@@ -49,7 +49,8 @@ class PaymentNotifyController extends AbstractController
 
             return $gateway->notifyResponse(true);
         } catch (\Throwable $th) {
-            $this->logger->error('The gateway notify error.', ['msg' => $th->getMessage()]);
+            $error = $th->getMessage();
+            $this->logger->error(__METHOD__, compact('error'));
 
             return $gateway->notifyResponse(false, $th->getMessage());
         }
