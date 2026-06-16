@@ -16,11 +16,9 @@ Siganushka\PaymentBundle\Entity\Payment:
             groups: [payment.item, payment.collection]
         type:
             groups: [payment.item, payment.collection]
-        expired:
-            groups: [payment.item, payment.collection]
-        expiredAt:
-            groups: [payment.item, payment.collection]
         createdAt:
             groups: [payment.item, payment.collection]
         updatedAt:
+            groups: [payment.item, payment.collection]
+        expiredAt:
             groups: [payment.item, payment.collection]

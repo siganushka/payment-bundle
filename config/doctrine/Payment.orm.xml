@@ -22,9 +22,9 @@
     <field name="details" type="json" nullable="true" />
     <field name="state" type="string" enum-type="Siganushka\PaymentBundle\Enum\PaymentState" />
     <field name="failedReason" type="string" nullable="true" />
-    <field name="expiredAt" type="datetime_immutable" nullable="true" />
     <field name="createdAt" type="datetime_immutable" />
     <field name="updatedAt" type="datetime_immutable" nullable="true" />
+    <field name="expiredAt" type="datetime_immutable" nullable="true" />
 
     <one-to-many field="refunds" target-entity="Siganushka\PaymentBundle\Entity\PaymentRefund" mapped-by="payment" orphan-removal="true">
       <order-by>

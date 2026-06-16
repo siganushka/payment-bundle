@@ -15,7 +15,7 @@ use Siganushka\Contracts\Doctrine\TimestampableTrait;
 use Siganushka\GenericBundle\Utils\ClassUtils;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 
-abstract class Payment implements ResourceInterface, ExpirableInterface, TimestampableInterface
+abstract class Payment implements ResourceInterface, TimestampableInterface, ExpirableInterface
 {
     use ResourceTrait;
     use ExpirableTrait;

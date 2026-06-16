@@ -7,6 +7,7 @@ namespace Siganushka\PaymentBundle\Repository;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Persistence\ManagerRegistry;
 use Siganushka\GenericBundle\Repository\GenericEntityRepository;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
 use Siganushka\PaymentBundle\Entity\Payment;
@@ -18,6 +19,14 @@ use Siganushka\PaymentBundle\Entity\Payment;
  */
 class PaymentRepository extends GenericEntityRepository
 {
+    public function __construct(ManagerRegistry $registry)
+    {
+        /** @var class-string<T> */
+        $entityClass = Payment::class;
+
+        parent::__construct($registry, $entityClass);
+    }
+
     /**
      * @return T|null
      */
