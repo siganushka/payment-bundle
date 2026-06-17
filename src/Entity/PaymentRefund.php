@@ -34,14 +34,6 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
         return $this;
     }
 
-    public function getRefundableAmount(): ?int
-    {
-        $paid = $this->payment?->getAmount();
-        $refunded = $this->payment?->getRefundAmount();
-
-        return null === $paid ? null : $paid - $refunded;
-    }
-
     public function getNumber(): ?string
     {
         return $this->number;

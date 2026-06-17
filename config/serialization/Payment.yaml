@@ -8,6 +8,8 @@ Siganushka\PaymentBundle\Entity\Payment:
             groups: [payment.item, payment.collection]
         refundAmount:
             groups: [payment.item, payment.collection]
+        refundableAmount:
+            groups: [payment.item, payment.collection]
         gateway:
             groups: [payment.item, payment.collection]
         state:

@@ -3,6 +3,6 @@ Siganushka\PaymentBundle\Entity\PaymentRefund:
         amount:
             - NotBlank: ~
             - GreaterThan: { value: 0 }
-            - LessThanOrEqual: { propertyPath: refundableAmount }
+            - LessThanOrEqual: { propertyPath: payment.refundableAmount }
         note:
-            - Length: { max: 4 }
+            - Length: { max: 32 }

@@ -146,6 +146,13 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
         return $this;
     }
 
+    public function getRefundableAmount(): ?int
+    {
+        return PaymentState::Succeed === $this->state && \is_int($this->amount)
+            ? $this->amount - $this->refundAmount
+            : null;
+    }
+
     public function getType(): string
     {
         return ClassUtils::generateAlias($this);
