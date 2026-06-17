@@ -15,8 +15,8 @@ final class PaymentCancelMessageHandler
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly PaymentRepository $paymentRepository,
-    ) {
+        private readonly PaymentRepository $paymentRepository)
+    {
     }
 
     public function __invoke(PaymentCancelMessage $message): void

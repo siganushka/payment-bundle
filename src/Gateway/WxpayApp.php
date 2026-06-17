@@ -25,6 +25,6 @@ class WxpayApp extends AbstractWxpay
 
     protected function getTradeType(): string
     {
-        return 'JSAPI';
+        return 'APP';
     }
 }

@@ -83,17 +83,17 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
             : $this->notifyHandler->fail(...), $message);
     }
 
-    protected function doPay(Payment $payment): array
+    protected function doPay(Payment $payment, array $options = []): array
     {
-        $options = array_merge([
+        $mergedOptions = array_merge([
             'body' => $payment->getTitle(),
             'out_trade_no' => $payment->getNumber(),
             'total_fee' => $payment->getAmount(),
             'trade_type' => $this->getTradeType(),
             'notify_url' => $this->generateNotifyUrl($this->generator),
-        ], $payment->context()[self::PAY_OPTIONS] ?? []);
+        ], $payment->context()[self::PAY_OPTIONS] ?? [], $options);
 
-        return $this->unifiedorder->send($options);
+        return $this->unifiedorder->send($mergedOptions);
     }
 
     abstract protected function getTradeType(): string;

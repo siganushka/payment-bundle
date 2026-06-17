@@ -30,7 +30,7 @@ class PaymentRepository extends GenericEntityRepository
     /**
      * @return T|null
      */
-    public function findOneByNumber(string $number): ?Payment
+    public function findOneByNumber(mixed $number): ?Payment
     {
         return $this->findOneBy(compact('number'));
     }
@@ -38,7 +38,7 @@ class PaymentRepository extends GenericEntityRepository
     /**
      * @return T|null
      */
-    public function findOneByNumberWithLock(string $number): ?Payment
+    public function findOneByNumberWithLock(mixed $number): ?Payment
     {
         $qb = $this->createQueryBuilder('p')
             ->where('p.number = :number')
