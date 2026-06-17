@@ -68,6 +68,7 @@ class PaymentController extends AbstractController
         }
 
         // Persist to generate number.
+        $entity->setGateway($dto->gateway);
         $this->entityManager->persist($entity);
 
         try {
@@ -83,9 +84,9 @@ class PaymentController extends AbstractController
 
         $data = $normalizer->normalize($entity, context: [
             AbstractNormalizer::GROUPS => ['payment.item'],
-        ]);
+        ]) + compact('result');
 
-        return $this->json($data + compact('result'));
+        return $this->json($data);
     }
 
     public function getItem(string $number): Response

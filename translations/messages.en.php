@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 return [
     'payment.number' => 'Number',
+    'payment.title' => 'Title',
     'payment.amount' => 'Amount',
+    'payment.refund_amount' => 'Refund Amount',
     'payment.type' => 'Type',
     'payment.gateway' => 'Pay Method',
     'payment.gateway.alipay_page' => 'Alipay Page',
