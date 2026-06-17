@@ -51,7 +51,7 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
         return $this->amount;
     }
 
-    public function setAmount(int $amount): static
+    public function setAmount(?int $amount): static
     {
         $this->amount = $amount;
 
