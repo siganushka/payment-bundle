@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Siganushka\PaymentBundle\Entity\Payment;
 use Siganushka\PaymentBundle\Entity\PaymentRefund;
@@ -17,7 +16,6 @@ use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 class PaymentManager implements PaymentManagerInterface
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly PaymentGatewayRegistry $paymentRegistry)
     {
@@ -28,15 +26,10 @@ class PaymentManager implements PaymentManagerInterface
         $gateway = $this->paymentRegistry->get($payment->getGateway() ?? '');
 
         try {
-            // Persist to generate number.
-            $this->entityManager->persist($payment);
-
             $result = $gateway->pay($payment);
             if (PaymentState::Succeed === $payment->getState()) {
                 $this->eventDispatcher->dispatch(new PaymentSuccessEvent($payment));
             }
-
-            $this->entityManager->flush();
 
             return $result;
         } catch (PaymentFailedException $th) {
@@ -44,7 +37,6 @@ class PaymentManager implements PaymentManagerInterface
             $payment->setDetails($th->getDetails());
             $payment->setFailedReason($th->getMessage());
             $this->eventDispatcher->dispatch(new PaymentFailureEvent($payment));
-            $this->entityManager->flush();
 
             throw $th;
         }
@@ -55,20 +47,14 @@ class PaymentManager implements PaymentManagerInterface
         $gateway = $this->paymentRegistry->get($payment->getGateway() ?? '');
 
         try {
-            // Persist to generate number.
-            $this->entityManager->persist($payment);
-
             $result = $gateway->refund($payment, $refund);
-
             $payment->addRefund($refund);
-            $this->entityManager->flush();
 
             return $result;
         } catch (PaymentFailedException $th) {
             $refund->setDetails($th->getDetails());
             $refund->setSuccessful(false);
             $refund->setFailedReason($th->getMessage());
-            $this->entityManager->flush();
 
             throw $th;
         }

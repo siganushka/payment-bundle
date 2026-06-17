@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Controller;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
 use Siganushka\PaymentBundle\Dto\PaymentCreateDto;
@@ -22,11 +23,13 @@ use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class PaymentController extends AbstractController
 {
     public function __construct(
         private readonly LoggerInterface $logger,
+        private readonly EntityManagerInterface $entityManager,
         private readonly PaymentRepository $paymentRepository)
     {
     }
@@ -41,7 +44,12 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    public function postCollection(PaymentGatewayRegistry $registry, PaymentFactoryInterface $factory, PaymentManagerInterface $paymentManager, #[MapRequestPayload] PaymentCreateDto $dto): Response
+    public function postCollection(
+        NormalizerInterface $normalizer,
+        PaymentGatewayRegistry $registry,
+        PaymentFactoryInterface $factory,
+        PaymentManagerInterface $paymentManager,
+        #[MapRequestPayload] PaymentCreateDto $dto): Response
     {
         try {
             $entity = $factory->createPayment($dto->type, $dto->identifier, $dto->gateway);
@@ -59,6 +67,9 @@ class PaymentController extends AbstractController
             throw new BadRequestHttpException(\sprintf('The payment unsupported gateway "%s".', $dto->gateway));
         }
 
+        // Persist to generate number.
+        $this->entityManager->persist($entity);
+
         try {
             $result = $paymentManager->pay($entity);
         } catch (\Throwable $th) {
@@ -68,7 +79,13 @@ class PaymentController extends AbstractController
             throw new BadRequestHttpException($th instanceof PaymentFailedException ? $error : 'Payment failed, please try again.', $th);
         }
 
-        return $this->json($result);
+        $this->entityManager->flush();
+
+        $data = $normalizer->normalize($entity, context: [
+            AbstractNormalizer::GROUPS => ['payment.item'],
+        ]);
+
+        return $this->json($data + compact('result'));
     }
 
     public function getItem(string $number): Response
@@ -118,6 +135,8 @@ class PaymentController extends AbstractController
 
             throw new BadRequestHttpException($th instanceof PaymentFailedException ? $error : 'Payment failed, please try again.', $th);
         }
+
+        $this->entityManager->flush();
 
         return $this->json($refund, context: [
             AbstractNormalizer::GROUPS => ['payment_refund.item'],
