@@ -15,7 +15,6 @@
     </id>
 
     <field name="number" type="string" />
-    <field name="title" type="string" />
     <field name="amount" type="integer" />
     <field name="refundAmount" type="integer" nullable="true" />
     <field name="gateway" type="string" />

@@ -14,6 +14,8 @@ use Siganushka\Contracts\Doctrine\TimestampableInterface;
 use Siganushka\Contracts\Doctrine\TimestampableTrait;
 use Siganushka\GenericBundle\Utils\ClassUtils;
 use Siganushka\PaymentBundle\Enum\PaymentState;
+use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Contracts\Translation\TranslatableInterface;
 
 abstract class Payment implements ResourceInterface, TimestampableInterface, ExpirableInterface
 {
@@ -22,7 +24,6 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
     use TimestampableTrait;
 
     protected ?string $number = null;
-    protected ?string $title = null;
     protected ?int $amount = null;
     protected ?int $refundAmount = null;
     protected ?string $gateway = null;
@@ -34,6 +35,11 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
      * @var Collection<int, PaymentRefund>
      */
     protected Collection $refunds;
+
+    /**
+     * @var string Cached inheritance type
+     */
+    private string $__type;
 
     public function __construct()
     {
@@ -50,11 +56,6 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
         $this->number = $number;
 
         return $this;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
     }
 
     public function getAmount(): ?int
@@ -155,7 +156,17 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
 
     public function getType(): string
     {
-        return ClassUtils::generateAlias($this);
+        return $this->__type ??= ClassUtils::generateAlias($this);
+    }
+
+    public function getTitle(): string|TranslatableInterface
+    {
+        return new TranslatableMessage(\sprintf('payment.type.%s', $this->getType()), $this->getTitleParameters());
+    }
+
+    public function getTitleParameters(): array
+    {
+        return [];
     }
 
     public function context(): array

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 return [
     'payment.number' => '交易编号',
-    'payment.title' => '交易标题',
     'payment.amount' => '支付金额',
     'payment.refund_amount' => '退款金额',
     'payment.type' => '交易类型',
+    'payment.title' => '交易标题',
     'payment.gateway' => '支付方式',
     'payment.gateway.alipay_page' => '支付宝扫码支付',
     'payment.gateway.wxpay_app' => '微信 App 支付',

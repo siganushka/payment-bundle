@@ -2,8 +2,6 @@ Siganushka\PaymentBundle\Entity\Payment:
     attributes:
         number:
             groups: [payment.item, payment.collection]
-        title:
-            groups: [payment.item, payment.collection]
         amount:
             groups: [payment.item, payment.collection]
         refundAmount:
@@ -17,6 +15,8 @@ Siganushka\PaymentBundle\Entity\Payment:
         failedReason:
             groups: [payment.item, payment.collection]
         type:
+            groups: [payment.item, payment.collection]
+        title:
             groups: [payment.item, payment.collection]
         createdAt:
             groups: [payment.item, payment.collection]

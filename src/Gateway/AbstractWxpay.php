@@ -18,6 +18,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Service\Attribute\Required;
+use Symfony\Contracts\Translation\TranslatableInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 abstract class AbstractWxpay extends AbstractPaymentGateway
 {
@@ -26,6 +28,8 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
 
     #[Required]
     public UrlGeneratorInterface $generator;
+    #[Required]
+    public TranslatorInterface $translator;
     #[Required]
     public Unifiedorder $unifiedorder;
     #[Required]
@@ -85,8 +89,13 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
 
     protected function doPay(Payment $payment, array $options = []): array
     {
+        $title = $payment->getTitle();
+        if ($title instanceof TranslatableInterface) {
+            $title = $title->trans($this->translator);
+        }
+
         $mergedOptions = array_merge([
-            'body' => $payment->getTitle(),
+            'body' => $title,
             'out_trade_no' => $payment->getNumber(),
             'total_fee' => $payment->getAmount(),
             'trade_type' => $this->getTradeType(),
