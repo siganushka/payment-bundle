@@ -23,16 +23,11 @@ class WxpayJsapi extends AbstractWxpay
             throw new PaymentContextRequiredException($payment, self::OPTIONS_OPENID);
         }
 
-        $result = $this->doPay($payment, compact('openid'));
+        $result = $this->doPay($payment, ['trade_type' => 'JSAPI'] + compact('openid'));
         $prepay_id = $result['prepay_id'] ?? null;
 
         $data = $this->parameterUtils->jsapi(compact('prepay_id'));
 
         return $data;
-    }
-
-    protected function getTradeType(): string
-    {
-        return 'JSAPI';
     }
 }

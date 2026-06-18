@@ -32,10 +32,10 @@ abstract class AbstractAlipay extends AbstractPaymentGateway
 
     public function refund(Payment $payment, PaymentRefund $refund): array
     {
-        $options = [
+        $options = array_merge([
             'out_trade_no' => $payment->getNumber(),
             'refund_amount_as_cents' => $refund->getAmount(),
-        ];
+        ], $payment->context()[self::REFUND_OPTIONS] ?? []);
 
         try {
             return $this->alipayRefund->send($options);

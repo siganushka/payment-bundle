@@ -15,16 +15,11 @@ class WxpayApp extends AbstractWxpay
 
     public function pay(Payment $payment): array
     {
-        $result = $this->doPay($payment);
+        $result = $this->doPay($payment, ['trade_type' => 'APP']);
         $prepay_id = $result['prepay_id'] ?? null;
 
         $data = $this->parameterUtils->app(compact('prepay_id'));
 
         return $data;
-    }
-
-    protected function getTradeType(): string
-    {
-        return 'APP';
     }
 }

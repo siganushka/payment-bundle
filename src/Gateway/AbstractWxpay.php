@@ -105,7 +105,6 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
                 'body' => $title,
                 'out_trade_no' => $payment->getNumber(),
                 'total_fee' => $payment->getAmount(),
-                'trade_type' => $this->getTradeType(),
                 'notify_url' => $this->generateNotifyUrl($this->generator),
             ], $payment->context()[self::PAY_OPTIONS] ?? [], $options);
 
@@ -116,6 +115,4 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
 
         return $this->cache->get($key, $callback);
     }
-
-    abstract protected function getTradeType(): string;
 }

@@ -11,15 +11,10 @@ class WxpayNative extends AbstractWxpay
 {
     public function pay(Payment $payment): array
     {
-        $result = $this->doPay($payment);
+        $result = $this->doPay($payment, ['trade_type' => 'NATIVE']);
         // Only reserve code_url to response.
         $data = array_filter($result, static fn (string $key) => 'code_url' === $key, \ARRAY_FILTER_USE_KEY);
 
         return $data;
-    }
-
-    protected function getTradeType(): string
-    {
-        return 'NATIVE';
     }
 }
