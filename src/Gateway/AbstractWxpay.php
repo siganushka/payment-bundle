@@ -17,6 +17,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -30,6 +32,8 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
     public UrlGeneratorInterface $generator;
     #[Required]
     public TranslatorInterface $translator;
+    #[Required]
+    public CacheInterface $cache;
     #[Required]
     public Unifiedorder $unifiedorder;
     #[Required]
@@ -89,20 +93,28 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
 
     protected function doPay(Payment $payment, array $options = []): array
     {
-        $title = $payment->getTitle();
-        if ($title instanceof TranslatableInterface) {
-            $title = $title->trans($this->translator);
-        }
+        $callback = function (ItemInterface $item) use ($payment, $options): array {
+            $item->expiresAfter(3600);
 
-        $mergedOptions = array_merge([
-            'body' => $title,
-            'out_trade_no' => $payment->getNumber(),
-            'total_fee' => $payment->getAmount(),
-            'trade_type' => $this->getTradeType(),
-            'notify_url' => $this->generateNotifyUrl($this->generator),
-        ], $payment->context()[self::PAY_OPTIONS] ?? [], $options);
+            $title = $payment->getTitle();
+            if ($title instanceof TranslatableInterface) {
+                $title = $title->trans($this->translator);
+            }
 
-        return $this->unifiedorder->send($mergedOptions);
+            $mergedOptions = array_merge([
+                'body' => $title,
+                'out_trade_no' => $payment->getNumber(),
+                'total_fee' => $payment->getAmount(),
+                'trade_type' => $this->getTradeType(),
+                'notify_url' => $this->generateNotifyUrl($this->generator),
+            ], $payment->context()[self::PAY_OPTIONS] ?? [], $options);
+
+            return $this->unifiedorder->send($mergedOptions);
+        };
+
+        $key = \sprintf('siganushka_payment_%s', $payment->getNumber());
+
+        return $this->cache->get($key, $callback);
     }
 
     abstract protected function getTradeType(): string;
