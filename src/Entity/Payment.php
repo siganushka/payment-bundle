@@ -26,6 +26,7 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
     protected ?string $number = null;
     protected ?int $amount = null;
     protected ?int $refundAmount = null;
+    protected ?string $currency = null;
     protected ?string $gateway = null;
     protected ?array $details = null;
     protected PaymentState $state = PaymentState::Pending;
@@ -66,6 +67,11 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
     public function getRefundAmount(): ?int
     {
         return $this->refundAmount;
+    }
+
+    public function getCurrency(): ?string
+    {
+        return $this->currency;
     }
 
     public function getGateway(): ?string
