@@ -17,7 +17,9 @@ class PaymentRefundType extends AbstractType
     {
         $builder
             ->add('amount', MoneyType::class)
-            ->add('note', TextareaType::class)
+            ->add('note', TextareaType::class, [
+                'required' => false,
+            ])
         ;
     }
 
