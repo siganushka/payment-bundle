@@ -40,7 +40,6 @@ class SiganushkaPaymentExtension extends Extension implements PrependExtensionIn
         $paymentNumberGeneratorListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => Payment::class, 'priority' => 8]);
 
         $paymentSetExpiredListener = $container->findDefinition(PaymentSetExpiredListener::class);
-        $paymentSetExpiredListener->setArgument('$seconds', $config['payment_cancel_seconds']);
         $paymentSetExpiredListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => Payment::class, 'priority' => 4]);
 
         $paymentCancelMessageListener = $container->findDefinition(PaymentCancelMessageListener::class);
