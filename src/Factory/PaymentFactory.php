@@ -26,7 +26,7 @@ class PaymentFactory implements PaymentFactoryInterface
             }
         }
 
-        throw new \InvalidArgumentException(\sprintf('There is no factory with identifier "%s".', $identifier));
+        throw new \InvalidArgumentException(\sprintf('There is no factory with type "%s".', $type));
     }
 
     public function supportsType(string $type): bool
