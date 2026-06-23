@@ -9,6 +9,7 @@ use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
 use Siganushka\PaymentBundle\Dto\PaymentCreateDto;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
+use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Factory\PaymentFactoryInterface;
@@ -116,7 +117,7 @@ class PaymentController extends AbstractController
             throw new BadRequestHttpException(null === $refundable ? 'The payment is non-refundable.' : 'The payment has been fully refunded.');
         }
 
-        $refund = $paymentManager->createPaymentRefund($entity);
+        $refund = PaymentRefund::createFromPayment($entity);
 
         $form = $this->createForm(PaymentRefundType::class, $refund);
         $form->submit($request->getPayload()->all());

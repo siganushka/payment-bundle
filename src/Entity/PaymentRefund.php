@@ -22,7 +22,7 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
     protected ?string $failedReason = null;
     protected ?string $note = null;
 
-    public function __construct(?Payment $payment = null)
+    final public function __construct(?Payment $payment = null)
     {
         $this->payment = $payment;
     }
@@ -109,5 +109,17 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
         $this->note = $note;
 
         return $this;
+    }
+
+    public static function createFromPayment(Payment $payment): static
+    {
+        $refundCount = \count($payment->getRefunds());
+        $refundNumber = \sprintf('%s%02d', $payment->getNumber(), ++$refundCount);
+
+        $refund = new static($payment);
+        $refund->setNumber($refundNumber);
+        $refund->setAmount($payment->getRefundableAmount());
+
+        return $refund;
     }
 }

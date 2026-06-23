@@ -12,6 +12,4 @@ interface PaymentManagerInterface
     public function pay(Payment $payment): array;
 
     public function refund(Payment $payment, PaymentRefund $refund): array;
-
-    public function createPaymentRefund(Payment $payment): PaymentRefund;
 }
