@@ -72,8 +72,7 @@ class PaymentManager implements PaymentManagerInterface
         $refundCount = \count($payment->getRefunds());
         $refundNumber = \sprintf('%s%02d', $payment->getNumber(), ++$refundCount);
 
-        $refund = new PaymentRefund();
-        $refund->setPayment($payment);
+        $refund = new PaymentRefund($payment);
         $refund->setNumber($refundNumber);
 
         return $refund;

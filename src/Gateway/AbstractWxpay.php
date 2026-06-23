@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Exception\ParseResponseException;
+use Siganushka\ApiFactory\Wxpay\Exception\InvalidSignatureException;
 use Siganushka\ApiFactory\Wxpay\NotifyHandler;
 use Siganushka\ApiFactory\Wxpay\Refund;
 use Siganushka\ApiFactory\Wxpay\Unifiedorder;
@@ -62,7 +63,11 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
 
     public function notify(Request $request): NotifyResult
     {
-        $data = $this->notifyHandler->handle($request, verifySignature: !$this->debug);
+        try {
+            $data = $this->notifyHandler->handle($request, verifySignature: !$this->debug);
+        } catch (InvalidSignatureException $th) {
+            throw new PaymentFailedException($th->getMessage(), $th->getData());
+        }
 
         if (\array_key_exists('out_trade_no', $data)
             && \array_key_exists('total_fee', $data)
@@ -81,7 +86,7 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
             return new RefundNotifyResult('SUCCESS' === $data['refund_status'], $data['out_refund_no'], (int) $data['refund_fee'], $data);
         }
 
-        throw new \RuntimeException('Invalid request.');
+        throw new PaymentFailedException('Invalid request.', $data);
     }
 
     public function notifyResponse(bool $successful, ?string $message = null): Response

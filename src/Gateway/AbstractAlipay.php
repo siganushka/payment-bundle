@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Gateway;
 
+use Siganushka\ApiFactory\Alipay\Exception\InvalidSignatureException;
 use Siganushka\ApiFactory\Alipay\NotifyHandler;
 use Siganushka\ApiFactory\Alipay\Refund;
 use Siganushka\ApiFactory\Exception\ParseResponseException;
@@ -46,22 +47,26 @@ abstract class AbstractAlipay extends AbstractPaymentGateway
 
     public function notify(Request $request): NotifyResult
     {
-        $data = $this->notifyHandler->handle($request, verifySignature: !$this->debug);
-        $toCents = static fn (string $key) => (int) ($data[$key] * 100);
+        try {
+            $data = $this->notifyHandler->handle($request, verifySignature: !$this->debug);
+        } catch (InvalidSignatureException $th) {
+            throw new PaymentFailedException($th->getMessage(), $th->getData());
+        }
 
+        $asCents = static fn (string $key) => (int) ($data[$key] * 100);
         if (\array_key_exists('out_biz_no', $data)
             && \array_key_exists('refund_fee', $data)
             && \array_key_exists('trade_status', $data)) {
-            return new RefundNotifyResult('TRADE_SUCCESS' === $data['trade_status'], $data['out_biz_no'], $toCents('refund_fee'), $data);
+            return new RefundNotifyResult('TRADE_SUCCESS' === $data['trade_status'], $data['out_biz_no'], $asCents('refund_fee'), $data);
         }
 
         if (\array_key_exists('out_trade_no', $data)
             && \array_key_exists('total_amount', $data)
             && \array_key_exists('trade_status', $data)) {
-            return new NotifyResult('TRADE_SUCCESS' === $data['trade_status'], $data['out_trade_no'], $toCents('total_amount'), $data);
+            return new NotifyResult('TRADE_SUCCESS' === $data['trade_status'], $data['out_trade_no'], $asCents('total_amount'), $data);
         }
 
-        throw new \RuntimeException('Invalid request.');
+        throw new PaymentFailedException('Invalid request.', $data);
     }
 
     public function notifyResponse(bool $successful, ?string $message = null): Response

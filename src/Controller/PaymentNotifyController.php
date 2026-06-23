@@ -13,6 +13,7 @@ use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
 use Siganushka\PaymentBundle\Event\RefundFailureEvent;
 use Siganushka\PaymentBundle\Event\RefundSuccessEvent;
+use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 use Siganushka\PaymentBundle\Repository\PaymentRepository;
@@ -51,10 +52,14 @@ class PaymentNotifyController extends AbstractController
 
             return $gateway->notifyResponse(true);
         } catch (\Throwable $th) {
-            $error = $th->getMessage();
-            $this->logger->error('Payment notify error.', compact('error'));
+            $context = ['error' => $th->getMessage()];
+            if ($th instanceof PaymentFailedException) {
+                $context['details'] = $th->getDetails();
+            }
 
-            return $gateway->notifyResponse(false, $error);
+            $this->logger->error('Payment notify error.', $context);
+
+            return $gateway->notifyResponse(false, $context['error']);
         }
     }
 

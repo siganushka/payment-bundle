@@ -22,6 +22,11 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
     protected ?string $failedReason = null;
     protected ?string $note = null;
 
+    public function __construct(?Payment $payment = null)
+    {
+        $this->payment = $payment;
+    }
+
     public function getPayment(): ?Payment
     {
         return $this->payment;
