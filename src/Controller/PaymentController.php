@@ -67,8 +67,8 @@ class PaymentController extends AbstractController
             throw new BadRequestHttpException(\sprintf('The payment unsupported gateway "%s".', $dto->gateway));
         }
 
-        // Persist to generate number.
         $this->entityManager->persist($entity);
+        $this->entityManager->flush();
 
         try {
             $result = $paymentManager->pay($entity);
@@ -78,8 +78,6 @@ class PaymentController extends AbstractController
 
             throw new BadRequestHttpException($th instanceof PaymentFailedException ? $error : 'Payment failed, please try again.', $th);
         }
-
-        $this->entityManager->flush();
 
         $data = $normalizer->normalize($entity, context: [
             AbstractNormalizer::GROUPS => ['payment.item'],
@@ -135,8 +133,6 @@ class PaymentController extends AbstractController
 
             throw new BadRequestHttpException($th instanceof PaymentFailedException ? $error : 'Payment failed, please try again.', $th);
         }
-
-        $this->entityManager->flush();
 
         return $this->json($refund, context: [
             AbstractNormalizer::GROUPS => ['payment_refund.item'],

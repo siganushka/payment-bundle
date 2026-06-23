@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Siganushka\PaymentBundle\Entity\Payment;
 use Siganushka\PaymentBundle\Entity\PaymentRefund;
@@ -18,6 +19,7 @@ use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 class PaymentManager implements PaymentManagerInterface
 {
     public function __construct(
+        private readonly EntityManagerInterface $entityManager,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly PaymentGatewayRegistry $paymentRegistry)
     {
@@ -33,12 +35,16 @@ class PaymentManager implements PaymentManagerInterface
                 $this->eventDispatcher->dispatch(new PaymentSuccessEvent($payment));
             }
 
+            $this->entityManager->flush();
+
             return $result;
         } catch (PaymentFailedException $th) {
             $payment->setState(PaymentState::Failed);
             $payment->setDetails($th->getDetails());
             $payment->setFailedReason($th->getMessage());
+
             $this->eventDispatcher->dispatch(new PaymentFailureEvent($payment));
+            $this->entityManager->flush();
 
             throw $th;
         }
@@ -56,12 +62,17 @@ class PaymentManager implements PaymentManagerInterface
                 $this->eventDispatcher->dispatch(new RefundSuccessEvent($payment, $refund));
             }
 
+            $this->entityManager->flush();
+
             return $result;
         } catch (PaymentFailedException $th) {
             $refund->setDetails($th->getDetails());
             $refund->setSuccessful(false);
             $refund->setFailedReason($th->getMessage());
+            $payment->addRefund($refund);
+
             $this->eventDispatcher->dispatch(new RefundFailureEvent($payment, $refund));
+            $this->entityManager->flush();
 
             throw $th;
         }
