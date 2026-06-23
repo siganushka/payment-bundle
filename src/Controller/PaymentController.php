@@ -118,6 +118,7 @@ class PaymentController extends AbstractController
         }
 
         $refund = PaymentRefund::createFromPayment($entity);
+        $refund->setAmount($refundable);
 
         $form = $this->createForm(PaymentRefundType::class, $refund);
         $form->submit($request->getPayload()->all());

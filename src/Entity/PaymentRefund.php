@@ -118,7 +118,6 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
 
         $refund = new static($payment);
         $refund->setNumber($refundNumber);
-        $refund->setAmount($payment->getRefundableAmount());
 
         return $refund;
     }
