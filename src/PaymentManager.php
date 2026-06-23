@@ -10,6 +10,8 @@ use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
+use Siganushka\PaymentBundle\Event\RefundFailureEvent;
+use Siganushka\PaymentBundle\Event\RefundSuccessEvent;
 use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 
@@ -23,7 +25,7 @@ class PaymentManager implements PaymentManagerInterface
 
     public function pay(Payment $payment): array
     {
-        $gateway = $this->paymentRegistry->get($payment->getGateway() ?? '');
+        $gateway = $this->paymentRegistry->get($payment->getGateway());
 
         try {
             $result = $gateway->pay($payment);
@@ -44,17 +46,22 @@ class PaymentManager implements PaymentManagerInterface
 
     public function refund(Payment $payment, PaymentRefund $refund): array
     {
-        $gateway = $this->paymentRegistry->get($payment->getGateway() ?? '');
+        $gateway = $this->paymentRegistry->get($payment->getGateway());
 
         try {
             $result = $gateway->refund($payment, $refund);
             $payment->addRefund($refund);
+
+            if ($refund->isSuccessful()) {
+                $this->eventDispatcher->dispatch(new RefundSuccessEvent($payment, $refund));
+            }
 
             return $result;
         } catch (PaymentFailedException $th) {
             $refund->setDetails($th->getDetails());
             $refund->setSuccessful(false);
             $refund->setFailedReason($th->getMessage());
+            $this->eventDispatcher->dispatch(new RefundFailureEvent($payment, $refund));
 
             throw $th;
         }

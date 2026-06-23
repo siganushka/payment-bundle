@@ -11,6 +11,8 @@ use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
+use Siganushka\PaymentBundle\Event\RefundFailureEvent;
+use Siganushka\PaymentBundle\Event\RefundSuccessEvent;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 use Siganushka\PaymentBundle\Repository\PaymentRepository;
@@ -32,7 +34,7 @@ class PaymentNotifyController extends AbstractController
 
     public function notify(Request $request, PaymentGatewayRegistry $registry, string $gateway): Response
     {
-        $this->logger->info('The payment notify has been triggered.', compact('gateway'));
+        $this->logger->info('Payment notify has been triggered.', compact('gateway'));
 
         try {
             $gateway = $registry->get($gateway);
@@ -50,31 +52,31 @@ class PaymentNotifyController extends AbstractController
             return $gateway->notifyResponse(true);
         } catch (\Throwable $th) {
             $error = $th->getMessage();
-            $this->logger->error(__METHOD__, compact('error'));
+            $this->logger->error('Payment notify error.', compact('error'));
 
-            return $gateway->notifyResponse(false, $th->getMessage());
+            return $gateway->notifyResponse(false, $error);
         }
     }
 
     private function handlePay(NotifyResult $result): void
     {
-        $entity = $this->paymentRepository->findOneByNumberWithLock($result->getNumber())
+        $payment = $this->paymentRepository->findOneByNumberWithLock($result->getNumber())
             ?? throw new \RuntimeException('Payment not found.');
 
-        if ($entity->getAmount() !== $result->getAmount()) {
+        if ($payment->getAmount() !== $result->getAmount()) {
             throw new \RuntimeException('Payment notify amount invalid.');
         }
 
         [$state, $event] = $result->isSuccessful()
-            ? [PaymentState::Succeed, new PaymentSuccessEvent($entity)]
-            : [PaymentState::Failed, new PaymentFailureEvent($entity)];
+            ? [PaymentState::Succeed, new PaymentSuccessEvent($payment)]
+            : [PaymentState::Failed, new PaymentFailureEvent($payment)];
 
-        if ($state === $entity->getState()) {
+        if ($state === $payment->getState()) {
             return;
         }
 
-        $entity->setDetails($result->getDetails());
-        $entity->setState($state);
+        $payment->setDetails($result->getDetails());
+        $payment->setState($state);
 
         $this->eventDispatcher->dispatch($event);
     }
@@ -82,18 +84,24 @@ class PaymentNotifyController extends AbstractController
     private function handleRefund(RefundNotifyResult $result): void
     {
         $number = $result->getNumber();
-        $entity = $this->entityManager->getRepository(PaymentRefund::class)->findOneBy(compact('number'))
+        $refund = $this->entityManager->getRepository(PaymentRefund::class)->findOneBy(compact('number'))
             ?? throw new \RuntimeException('Payment refund not found.');
 
-        if ($entity->getAmount() !== $result->getAmount()) {
+        if ($refund->getAmount() !== $result->getAmount()) {
             throw new \RuntimeException('Payment refund notify amount invalid.');
         }
 
-        if ($entity->isSuccessful()) {
+        if ($refund->isSuccessful() || null === $payment = $refund->getPayment()) {
             return;
         }
 
-        $entity->setDetails($result->getDetails());
-        $entity->setSuccessful($result->isSuccessful());
+        $refund->setDetails($result->getDetails());
+        $refund->setSuccessful($result->isSuccessful());
+
+        $event = $result->isSuccessful()
+            ? new RefundSuccessEvent($payment, $refund)
+            : new RefundFailureEvent($payment, $refund);
+
+        $this->eventDispatcher->dispatch($event);
     }
 }

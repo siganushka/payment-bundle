@@ -15,9 +15,11 @@ class BarPayment extends Payment
      */
     private Collection $bars;
 
-    public function __construct()
+    public function __construct(string $gateway)
     {
         $this->bars = new ArrayCollection();
+
+        parent::__construct($gateway);
     }
 
     public function addBar(Bar $bar): static

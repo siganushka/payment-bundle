@@ -8,8 +8,10 @@ use Siganushka\PaymentBundle\Entity\Payment;
 
 class FooPayment extends Payment
 {
-    public function __construct(int $amount)
+    public function __construct(string $gateway, int $amount)
     {
         $this->amount = $amount;
+
+        parent::__construct($gateway);
     }
 }

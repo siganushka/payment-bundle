@@ -68,7 +68,6 @@ class PaymentController extends AbstractController
         }
 
         // Persist to generate number.
-        $entity->setGateway($dto->gateway);
         $this->entityManager->persist($entity);
 
         try {

@@ -14,22 +14,22 @@ class PaymentTest extends TestCase
 {
     public function testAll(): void
     {
-        $payment1 = new FooPayment(1024);
+        $payment1 = new FooPayment('x', 1024);
+        static::assertSame('x', $payment1->getGateway());
         static::assertSame(1024, $payment1->getAmount());
         static::assertNull($payment1->getNumber());
-        static::assertNull($payment1->getGateway());
         static::assertNull($payment1->getDetails());
         static::assertSame(PaymentState::Pending, $payment1->getState());
 
-        $payment2 = new BarPayment();
+        $payment2 = new BarPayment('y');
         $payment2->addBar(new Bar(1));
         $payment2->addBar(new Bar(2));
         $payment2->addBar(new Bar(3));
         $payment2->setState(PaymentState::Succeed);
 
+        static::assertSame('y', $payment2->getGateway());
         static::assertSame(6, $payment2->getAmount());
         static::assertNull($payment2->getNumber());
-        static::assertNull($payment2->getGateway());
         static::assertNull($payment2->getDetails());
         static::assertSame(PaymentState::Succeed, $payment2->getState());
     }
