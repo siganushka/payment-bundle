@@ -96,7 +96,8 @@ class PaymentNotifyController extends AbstractController
             throw new \RuntimeException('Payment refund notify amount invalid.');
         }
 
-        if ($refund->isSuccessful() || null === $payment = $refund->getPayment()) {
+        $payment = $refund->getPayment();
+        if (!$payment || $refund->isSuccessful()) {
             return;
         }
 
