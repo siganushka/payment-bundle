@@ -66,10 +66,10 @@ class PaymentNotifyController extends AbstractController
     private function handlePay(NotifyResult $result): void
     {
         $payment = $this->paymentRepository->findOneByNumberWithLock($result->getNumber())
-            ?? throw new \RuntimeException('Payment not found.');
+            ?? throw new \RuntimeException(\sprintf('Payment #%s not found.', $result->getNumber()));
 
         if ($payment->getAmount() !== $result->getAmount()) {
-            throw new \RuntimeException('Payment notify amount invalid.');
+            throw new \RuntimeException(\sprintf('Payment #%s notify amount invalid.', $result->getNumber()));
         }
 
         [$state, $event] = $result->isSuccessful()
@@ -90,10 +90,10 @@ class PaymentNotifyController extends AbstractController
     {
         $number = $result->getNumber();
         $refund = $this->entityManager->getRepository(PaymentRefund::class)->findOneBy(compact('number'))
-            ?? throw new \RuntimeException('Payment refund not found.');
+            ?? throw new \RuntimeException(\sprintf('Payment refund #%s not found.', $number));
 
         if ($refund->getAmount() !== $result->getAmount()) {
-            throw new \RuntimeException('Payment refund notify amount invalid.');
+            throw new \RuntimeException(\sprintf('Payment refund #%s notify amount invalid.', $number));
         }
 
         $payment = $refund->getPayment();
