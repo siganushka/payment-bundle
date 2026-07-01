@@ -12,7 +12,7 @@ class UnsupportedGatewayException extends \InvalidArgumentException
         private readonly PaymentGatewayRegistry $registry,
         private readonly string $gateway)
     {
-        parent::__construct(\sprintf('The gateway "%s" is invalid. Accepted values are: "%s".', $gateway, implode('", "', $registry->getNames())));
+        parent::__construct(\sprintf('The gateway "%s" is invalid.', $gateway));
     }
 
     public function getRegistry(): PaymentGatewayRegistry
@@ -23,10 +23,5 @@ class UnsupportedGatewayException extends \InvalidArgumentException
     public function getGateway(): string
     {
         return $this->gateway;
-    }
-
-    public function getSafeMessage(): string
-    {
-        return \sprintf('The gateway "%s" is invalid.', $this->gateway);
     }
 }

@@ -40,7 +40,7 @@ class PaymentNotifyController extends AbstractController
         try {
             $gateway = $registry->get($gateway);
         } catch (UnsupportedGatewayException $th) {
-            return new Response($th->getSafeMessage());
+            return new Response($th->getMessage());
         }
 
         try {

@@ -171,4 +171,9 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
     {
         return [];
     }
+
+    public function supportsRefund(): bool
+    {
+        return true;
+    }
 }

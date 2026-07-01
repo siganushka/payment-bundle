@@ -112,13 +112,17 @@ class PaymentController extends AbstractController
         $entity = $this->paymentRepository->findOneByNumber($number)
             ?? throw $this->createNotFoundException();
 
-        $refundable = $entity->getRefundableAmount();
-        if (null === $refundable || $refundable <= 0) {
-            throw new BadRequestHttpException(null === $refundable ? 'The payment is non-refundable.' : 'The payment has been fully refunded.');
+        if (!$entity->supportsRefund()) {
+            throw new BadRequestHttpException('The payment unsupported refund.');
+        }
+
+        $amount = $entity->getRefundableAmount();
+        if (null === $amount || $amount <= 0) {
+            throw new BadRequestHttpException(null === $amount ? 'The payment is non-refundable.' : 'The payment has been fully refunded.');
         }
 
         $refund = PaymentRefund::createFromPayment($entity);
-        $refund->setAmount($refundable);
+        $refund->setAmount($amount);
 
         $form = $this->createForm(PaymentRefundType::class, $refund);
         $form->submit($request->getPayload()->all());
