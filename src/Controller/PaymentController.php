@@ -59,13 +59,13 @@ class PaymentController extends AbstractController
         }
 
         try {
-            $gateway = $registry->get($dto->gateway);
+            $gateway = $registry->get($entity->getGateway());
         } catch (UnsupportedGatewayException $th) {
             throw new BadRequestHttpException($th->getMessage(), $th);
         }
 
         if (!$gateway->supports($entity)) {
-            throw new BadRequestHttpException(\sprintf('The payment unsupported gateway "%s".', $dto->gateway));
+            throw new BadRequestHttpException(\sprintf('The payment unsupported gateway "%s".', $entity->getGateway()));
         }
 
         $this->entityManager->persist($entity);
