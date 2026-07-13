@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\PaymentBundle\Entity\Payment;
-use Symfony\Component\HttpFoundation\Response;
 
 class WxpayNative extends AbstractWxpay
 {
