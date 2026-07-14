@@ -29,7 +29,7 @@ class PaymentGatewayRegistry
     {
         try {
             return $this->locator->get($name);
-        } catch (ServiceNotFoundException $th) {
+        } catch (ServiceNotFoundException) {
             throw new UnsupportedGatewayException($this, $name);
         }
     }
