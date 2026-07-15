@@ -18,4 +18,6 @@ return [
     'payment.state.succeed' => '支付成功',
     'payment.state.failed' => '支付失败',
     'payment.state.cancelled' => '已取消',
+    'payment_refund.amount' => '退款金额',
+    'payment_refund.note' => '备注',
 ];

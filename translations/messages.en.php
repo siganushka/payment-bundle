@@ -18,4 +18,6 @@ return [
     'payment.state.succeed' => 'Succeed',
     'payment.state.failed' => 'Failed',
     'payment.state.cancelled' => 'Cancelled',
+    'payment_refund.amount' => 'Amount',
+    'payment_refund.note' => 'Note',
 ];

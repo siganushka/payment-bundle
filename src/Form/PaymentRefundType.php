@@ -16,8 +16,11 @@ class PaymentRefundType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('amount', MoneyType::class)
+            ->add('amount', MoneyType::class, [
+                'label' => 'payment_refund.amount',
+            ])
             ->add('note', TextareaType::class, [
+                'label' => 'payment_refund.note',
                 'required' => false,
             ])
         ;
