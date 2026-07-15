@@ -137,7 +137,7 @@ class PaymentController extends AbstractController
             $error = $th->getMessage();
             $this->logger->error(__METHOD__, compact('error'));
 
-            throw new BadRequestHttpException($th instanceof PaymentFailedException ? $error : 'Payment failed, please try again.', $th);
+            throw new BadRequestHttpException($th instanceof PaymentFailedException ? $error : 'Refund failed, please try again.', $th);
         }
 
         return $this->json($refund, context: [
