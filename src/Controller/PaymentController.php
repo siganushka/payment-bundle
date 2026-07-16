@@ -97,16 +97,6 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    public function getRefunds(string $number): Response
-    {
-        $entity = $this->paymentRepository->findOneByNumber($number)
-            ?? throw $this->createNotFoundException();
-
-        return $this->json($entity->getRefunds(), context: [
-            AbstractNormalizer::GROUPS => ['payment_refund.collection'],
-        ]);
-    }
-
     public function postRefunds(Request $request, PaymentManagerInterface $paymentManager, string $number): Response
     {
         $entity = $this->paymentRepository->findOneByNumber($number)

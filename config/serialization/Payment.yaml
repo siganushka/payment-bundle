@@ -26,3 +26,5 @@ Siganushka\PaymentBundle\Entity\Payment:
             groups: [payment.item, payment.collection]
         expiredAt:
             groups: [payment.item, payment.collection]
+        refunds:
+            groups: [payment.item, payment.collection]
