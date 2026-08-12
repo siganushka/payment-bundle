@@ -10,27 +10,24 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Siganushka\GenericBundle\Repository\GenericEntityRepository;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 
 /**
- * @template T of Payment = Payment
+ * @template T of AbstractPayment = AbstractPayment
  *
  * @extends GenericEntityRepository<T>
  */
 class PaymentRepository extends GenericEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry, string $entityClass = AbstractPayment::class)
     {
-        /** @var class-string<T> */
-        $entityClass = Payment::class;
-
         parent::__construct($registry, $entityClass);
     }
 
     /**
      * @return T|null
      */
-    public function findOneByNumber(mixed $number): ?Payment
+    public function findOneByNumber(mixed $number): ?AbstractPayment
     {
         return $this->findOneBy(compact('number'));
     }
@@ -38,7 +35,7 @@ class PaymentRepository extends GenericEntityRepository
     /**
      * @return T|null
      */
-    public function findOneByNumberWithLock(mixed $number): ?Payment
+    public function findOneByNumberWithLock(mixed $number): ?AbstractPayment
     {
         $qb = $this->createQueryBuilder('p')
             ->where('p.number = :number')

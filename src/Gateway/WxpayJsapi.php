@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Wxpay\ParameterUtils;
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Siganushka\PaymentBundle\Exception\PaymentContextRequiredException;
 
 class WxpayJsapi extends AbstractWxpay
@@ -16,7 +16,7 @@ class WxpayJsapi extends AbstractWxpay
     {
     }
 
-    public function pay(Payment $payment): array
+    public function pay(AbstractPayment $payment): array
     {
         $openid = $payment->context()[self::OPTIONS_OPENID] ?? null;
         if (null === $openid) {

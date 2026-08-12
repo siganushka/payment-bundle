@@ -1,4 +1,4 @@
-Siganushka\PaymentBundle\Entity\Payment:
+Siganushka\PaymentBundle\Entity\AbstractPayment:
     attributes:
         number:
             groups: [payment.item, payment.collection]

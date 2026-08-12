@@ -6,8 +6,8 @@ namespace Siganushka\PaymentBundle;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Siganushka\PaymentBundle\Entity\Payment;
-use Siganushka\PaymentBundle\Entity\PaymentRefund;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
+use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
@@ -25,7 +25,7 @@ class PaymentManager implements PaymentManagerInterface
     {
     }
 
-    public function pay(Payment $payment): array
+    public function pay(AbstractPayment $payment): array
     {
         $gateway = $this->paymentRegistry->get($payment->getGateway());
 
@@ -50,7 +50,7 @@ class PaymentManager implements PaymentManagerInterface
         }
     }
 
-    public function refund(Payment $payment, PaymentRefund $refund): array
+    public function refund(AbstractPayment $payment, AbstractPaymentRefund $refund): array
     {
         $gateway = $this->paymentRegistry->get($payment->getGateway());
 

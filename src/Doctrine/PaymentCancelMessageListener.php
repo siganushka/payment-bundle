@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Doctrine;
 
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Message\PaymentCancelMessage;
 use Symfony\Component\Messenger\Envelope;
@@ -17,7 +17,7 @@ class PaymentCancelMessageListener
     {
     }
 
-    public function __invoke(Payment $entity): void
+    public function __invoke(AbstractPayment $entity): void
     {
         $number = $entity->getNumber();
         if (!$number || PaymentState::Pending !== $entity->getState() || !$entity->getExpiredAt()) {

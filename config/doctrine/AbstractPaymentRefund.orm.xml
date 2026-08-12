@@ -2,10 +2,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                         https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity
-    name="Siganushka\PaymentBundle\Entity\Payment"
-    inheritance-type="SINGLE_TABLE"
-    repository-class="Siganushka\PaymentBundle\Repository\PaymentRepository">
+  <mapped-superclass name="Siganushka\PaymentBundle\Entity\AbstractPaymentRefund">
     <unique-constraints>
       <unique-constraint columns="number" />
     </unique-constraints>
@@ -16,23 +13,13 @@
 
     <field name="number" type="string" />
     <field name="amount" type="integer" />
-    <field name="refundAmount" type="integer" nullable="true" />
-    <field name="currency" type="string" />
-    <field name="gateway" type="string" />
     <field name="details" type="json" nullable="true" />
-    <field name="state" type="string" enum-type="Siganushka\PaymentBundle\Enum\PaymentState" />
+    <field name="successful" type="boolean" />
     <field name="failedReason" type="string" nullable="true" />
+    <field name="note" type="string" nullable="true" />
     <field name="createdAt" type="datetime_immutable" />
     <field name="updatedAt" type="datetime_immutable" nullable="true" />
-    <field name="expiredAt" type="datetime_immutable" nullable="true" />
 
-    <one-to-many field="refunds" target-entity="Siganushka\PaymentBundle\Entity\PaymentRefund" mapped-by="payment" orphan-removal="true">
-      <order-by>
-        <order-by-field name="id" direction="DESC" />
-      </order-by>
-      <cascade>
-        <cascade-all/>
-      </cascade>
-    </one-to-many>
-  </entity>
+    <many-to-one field="payment" target-entity="Siganushka\PaymentBundle\Entity\AbstractPayment" inversed-by="refunds" />
+  </mapped-superclass>
 </doctrine-mapping>

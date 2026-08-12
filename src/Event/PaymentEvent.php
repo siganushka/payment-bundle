@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Event;
 
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Symfony\Contracts\EventDispatcher\Event;
 
 class PaymentEvent extends Event
 {
-    public function __construct(protected readonly Payment $payment)
+    public function __construct(protected readonly AbstractPayment $payment)
     {
     }
 
-    public function getPayment(): Payment
+    public function getPayment(): AbstractPayment
     {
         return $this->payment;
     }

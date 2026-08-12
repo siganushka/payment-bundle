@@ -9,12 +9,18 @@ use Siganushka\Contracts\Doctrine\ResourceTrait;
 use Siganushka\Contracts\Doctrine\TimestampableInterface;
 use Siganushka\Contracts\Doctrine\TimestampableTrait;
 
-class PaymentRefund implements ResourceInterface, TimestampableInterface
+/**
+ * @template TPayment of AbstractPayment = AbstractPayment
+ */
+abstract class AbstractPaymentRefund implements ResourceInterface, TimestampableInterface
 {
     use ResourceTrait;
     use TimestampableTrait;
 
-    protected ?Payment $payment = null;
+    /**
+     * @var TPayment|null
+     */
+    protected ?AbstractPayment $payment = null;
     protected ?string $number = null;
     protected ?int $amount = null;
     protected ?array $details = null;
@@ -22,17 +28,26 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
     protected ?string $failedReason = null;
     protected ?string $note = null;
 
-    final public function __construct(?Payment $payment = null)
+    /**
+     * @param TPayment|null $payment
+     */
+    public function __construct(?AbstractPayment $payment = null)
     {
         $this->payment = $payment;
     }
 
-    public function getPayment(): ?Payment
+    /**
+     * @return TPayment|null
+     */
+    public function getPayment(): ?AbstractPayment
     {
         return $this->payment;
     }
 
-    public function setPayment(?Payment $payment): static
+    /**
+     * @param TPayment|null $payment
+     */
+    public function setPayment(?AbstractPayment $payment): static
     {
         $this->payment = $payment;
 
@@ -109,16 +124,5 @@ class PaymentRefund implements ResourceInterface, TimestampableInterface
         $this->note = $note;
 
         return $this;
-    }
-
-    public static function createFromPayment(Payment $payment): static
-    {
-        $refundCount = \count($payment->getRefunds());
-        $refundNumber = \sprintf('%s%02d', $payment->getNumber(), ++$refundCount);
-
-        $refund = new static($payment);
-        $refund->setNumber($refundNumber);
-
-        return $refund;
     }
 }

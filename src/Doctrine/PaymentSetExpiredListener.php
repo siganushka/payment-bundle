@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Doctrine;
 
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class PaymentSetExpiredListener
@@ -15,7 +15,7 @@ class PaymentSetExpiredListener
     {
     }
 
-    public function __invoke(Payment $entity): void
+    public function __invoke(AbstractPayment $entity): void
     {
         $defaultExpiredAt = (new \DateTimeImmutable())->modify(\sprintf('+%d seconds', $this->seconds));
         $currentExpiredAt = $entity->getExpiredAt();

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Wxpay\ParameterUtils;
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 
 class WxpayApp extends AbstractWxpay
 {
@@ -13,7 +13,7 @@ class WxpayApp extends AbstractWxpay
     {
     }
 
-    public function pay(Payment $payment): array
+    public function pay(AbstractPayment $payment): array
     {
         $result = $this->doPay($payment, ['trade_type' => 'APP']);
         $prepay_id = $result['prepay_id'] ?? null;

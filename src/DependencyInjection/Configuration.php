@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\DependencyInjection;
 
+use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
 use Siganushka\PaymentBundle\Generator\PaymentNumberGenerator;
 use Siganushka\PaymentBundle\Generator\PaymentNumberGeneratorInterface;
+use Siganushka\PaymentBundle\Repository\PaymentRefundRepository;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
+    public const RESOURCE_MAPPING = [
+        'payment_refund_class' => [AbstractPaymentRefund::class, PaymentRefundRepository::class],
+    ];
+
     /**
      * @return TreeBuilder<'array'>
      */
@@ -18,6 +24,19 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('siganushka_payment');
         $rootNode = $treeBuilder->getRootNode();
+
+        foreach (self::RESOURCE_MAPPING as $configName => [$interface]) {
+            $rootNode->children()
+                ->scalarNode($configName)
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                    ->validate()
+                        ->ifTrue(static fn (mixed $v): bool => \is_string($v) && !is_subclass_of($v, $interface, true))
+                        ->thenInvalid('The value must be instanceof '.$interface.', %s given.')
+                    ->end()
+                ->end()
+            ;
+        }
 
         $rootNode->children()
             ->scalarNode('payment_number_generator')

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\GenericBundle\Utils\ClassUtils;
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 abstract class AbstractPaymentGateway implements PaymentGatewayInterface
@@ -15,7 +15,7 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
         return ClassUtils::generateAlias(static::class);
     }
 
-    public function supports(Payment $payment): bool
+    public function supports(AbstractPayment $payment): bool
     {
         return true;
     }

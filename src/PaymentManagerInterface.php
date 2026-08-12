@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle;
 
-use Siganushka\PaymentBundle\Entity\Payment;
-use Siganushka\PaymentBundle\Entity\PaymentRefund;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
+use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
 
 interface PaymentManagerInterface
 {
-    public function pay(Payment $payment): array;
+    public function pay(AbstractPayment $payment): array;
 
-    public function refund(Payment $payment, PaymentRefund $refund): array;
+    public function refund(AbstractPayment $payment, AbstractPaymentRefund $refund): array;
 }

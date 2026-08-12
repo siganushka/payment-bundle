@@ -7,7 +7,6 @@ namespace Siganushka\PaymentBundle\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Siganushka\PaymentBundle\Event\PaymentFailureEvent;
 use Siganushka\PaymentBundle\Event\PaymentSuccessEvent;
@@ -16,6 +15,7 @@ use Siganushka\PaymentBundle\Event\RefundSuccessEvent;
 use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
+use Siganushka\PaymentBundle\Repository\PaymentRefundRepository;
 use Siganushka\PaymentBundle\Repository\PaymentRepository;
 use Siganushka\PaymentBundle\Result\NotifyResult;
 use Siganushka\PaymentBundle\Result\RefundNotifyResult;
@@ -26,10 +26,11 @@ use Symfony\Component\HttpFoundation\Response;
 class PaymentNotifyController extends AbstractController
 {
     public function __construct(
-        private readonly LoggerInterface $logger,
-        private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly PaymentRepository $paymentRepository)
+        protected readonly LoggerInterface $logger,
+        protected readonly EventDispatcherInterface $eventDispatcher,
+        protected readonly EntityManagerInterface $entityManager,
+        protected readonly PaymentRepository $paymentRepository,
+        protected readonly PaymentRefundRepository $paymentRefundRepository)
     {
     }
 
@@ -89,7 +90,7 @@ class PaymentNotifyController extends AbstractController
     private function handleRefund(RefundNotifyResult $result): void
     {
         $number = $result->getNumber();
-        $refund = $this->entityManager->getRepository(PaymentRefund::class)->findOneBy(compact('number'))
+        $refund = $this->paymentRefundRepository->findOneBy(compact('number'))
             ?? throw new \RuntimeException(\sprintf('Payment refund #%s not found.', $number));
 
         if ($refund->getAmount() !== $result->getAmount()) {

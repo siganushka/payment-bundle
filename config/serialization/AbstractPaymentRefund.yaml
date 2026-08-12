@@ -1,4 +1,4 @@
-Siganushka\PaymentBundle\Entity\PaymentRefund:
+Siganushka\PaymentBundle\Entity\AbstractPaymentRefund:
     attributes:
         number:
             groups: [payment.item, payment.collection, payment_refund.item]

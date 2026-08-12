@@ -9,13 +9,13 @@ use Knp\Component\Pager\PaginatorInterface;
 use Psr\Log\LoggerInterface;
 use Siganushka\PaymentBundle\Dto\PaymentCreateDto;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
-use Siganushka\PaymentBundle\Entity\PaymentRefund;
 use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Exception\UnsupportedGatewayException;
 use Siganushka\PaymentBundle\Factory\PaymentFactoryInterface;
 use Siganushka\PaymentBundle\Form\PaymentRefundType;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayRegistry;
 use Siganushka\PaymentBundle\PaymentManagerInterface;
+use Siganushka\PaymentBundle\Repository\PaymentRefundRepository;
 use Siganushka\PaymentBundle\Repository\PaymentRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -97,7 +97,7 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    public function postRefunds(Request $request, PaymentManagerInterface $paymentManager, string $number): Response
+    public function postRefunds(Request $request, PaymentManagerInterface $paymentManager, PaymentRefundRepository $paymentRefundRepository, string $number): Response
     {
         $entity = $this->paymentRepository->findOneByNumber($number)
             ?? throw $this->createNotFoundException();
@@ -110,7 +110,7 @@ class PaymentController extends AbstractController
             throw new BadRequestHttpException('The payment has been fully refunded.');
         }
 
-        $refund = PaymentRefund::createFromPayment($entity);
+        $refund = $paymentRefundRepository->createFromPayment($entity);
         $refund->setAmount($amount);
 
         $form = $this->createForm(PaymentRefundType::class, $refund);

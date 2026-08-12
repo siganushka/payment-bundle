@@ -17,7 +17,10 @@ use Siganushka\PaymentBundle\Enum\PaymentState;
 use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Contracts\Translation\TranslatableInterface;
 
-abstract class Payment implements ResourceInterface, TimestampableInterface, ExpirableInterface
+/**
+ * @template TRefund of AbstractPaymentRefund = AbstractPaymentRefund
+ */
+abstract class AbstractPayment implements ResourceInterface, TimestampableInterface, ExpirableInterface
 {
     use ResourceTrait;
     use ExpirableTrait;
@@ -32,7 +35,7 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
     protected ?string $failedReason = null;
 
     /**
-     * @var Collection<int, PaymentRefund>
+     * @var Collection<int, TRefund>
      */
     protected Collection $refunds;
 
@@ -115,14 +118,17 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
     }
 
     /**
-     * @return Collection<int, PaymentRefund>
+     * @return Collection<int, TRefund>
      */
     public function getRefunds(): Collection
     {
         return $this->refunds;
     }
 
-    public function addRefund(PaymentRefund $refund): static
+    /**
+     * @param TRefund $refund
+     */
+    public function addRefund(AbstractPaymentRefund $refund): static
     {
         if (!$this->refunds->contains($refund)) {
             $this->refundAmount += $refund->isSuccessful() ? $refund->getAmount() : 0;
@@ -133,7 +139,10 @@ abstract class Payment implements ResourceInterface, TimestampableInterface, Exp
         return $this;
     }
 
-    public function removeRefund(PaymentRefund $refund): static
+    /**
+     * @param TRefund $refund
+     */
+    public function removeRefund(AbstractPaymentRefund $refund): static
     {
         if ($this->refunds->removeElement($refund)) {
             $this->refundAmount -= $refund->isSuccessful() ? $refund->getAmount() : 0;

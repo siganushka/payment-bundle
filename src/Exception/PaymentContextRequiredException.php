@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Exception;
 
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 
 class PaymentContextRequiredException extends \RuntimeException
 {
     public function __construct(
-        private readonly Payment $payment,
+        private readonly AbstractPayment $payment,
         private readonly string $contextKey)
     {
         parent::__construct(\sprintf('The context key "%s" for %s is required.', $contextKey, $payment::class));
     }
 
-    public function getPayment(): Payment
+    public function getPayment(): AbstractPayment
     {
         return $this->payment;
     }

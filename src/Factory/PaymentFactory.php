@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Factory;
 
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class PaymentFactory implements PaymentFactoryInterface
@@ -18,7 +18,7 @@ class PaymentFactory implements PaymentFactoryInterface
     {
     }
 
-    public function createPayment(string $type, int|string $identifier, string $gateway): Payment
+    public function createPayment(string $type, int|string $identifier, string $gateway): AbstractPayment
     {
         foreach ($this->factories as $factory) {
             if ($factory->supportsType($type)) {

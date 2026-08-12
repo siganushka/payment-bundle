@@ -6,9 +6,9 @@ namespace Siganushka\PaymentBundle\Tests\Fixtures;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 
-class BarPayment extends Payment
+class BarPayment extends AbstractPayment
 {
     /**
      * @var Collection<int, Bar>

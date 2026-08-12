@@ -8,8 +8,8 @@ use Siganushka\ApiFactory\Alipay\Exception\InvalidSignatureException;
 use Siganushka\ApiFactory\Alipay\NotifyHandler;
 use Siganushka\ApiFactory\Alipay\Refund;
 use Siganushka\ApiFactory\Exception\ParseResponseException;
-use Siganushka\PaymentBundle\Entity\Payment;
-use Siganushka\PaymentBundle\Entity\PaymentRefund;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
+use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
 use Siganushka\PaymentBundle\Exception\PaymentFailedException;
 use Siganushka\PaymentBundle\Result\NotifyResult;
 use Siganushka\PaymentBundle\Result\RefundNotifyResult;
@@ -31,7 +31,7 @@ abstract class AbstractAlipay extends AbstractPaymentGateway
     #[Autowire(param: 'kernel.debug')]
     public bool $debug;
 
-    public function refund(Payment $payment, PaymentRefund $refund): array
+    public function refund(AbstractPayment $payment, AbstractPaymentRefund $refund): array
     {
         $options = array_merge([
             'out_trade_no' => $payment->getNumber(),

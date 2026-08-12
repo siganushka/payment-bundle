@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Generator;
 
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 
 interface PaymentNumberGeneratorInterface
 {
-    public function generate(Payment $entity): string;
+    public function generate(AbstractPayment $entity): string;
 }

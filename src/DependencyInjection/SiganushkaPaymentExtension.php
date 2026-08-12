@@ -8,7 +8,7 @@ use Doctrine\ORM\Events;
 use Siganushka\PaymentBundle\Doctrine\PaymentCancelMessageListener;
 use Siganushka\PaymentBundle\Doctrine\PaymentNumberGeneratorListener;
 use Siganushka\PaymentBundle\Doctrine\PaymentSetExpiredListener;
-use Siganushka\PaymentBundle\Entity\Payment;
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Siganushka\PaymentBundle\Factory\PaymentFactoryInterface;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayInterface;
 use Siganushka\PaymentBundle\Generator\PaymentNumberGeneratorInterface;
@@ -31,19 +31,24 @@ class SiganushkaPaymentExtension extends Extension implements PrependExtensionIn
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        foreach (Configuration::RESOURCE_MAPPING as $configName => [, $repositoryClass]) {
+            $repositoryClass = $container->findDefinition($repositoryClass);
+            $repositoryClass->setArgument('$entityClass', $config[$configName]);
+        }
+
         $container->setParameter('siganushka_payment.payment_cancel_transport', $config['payment_cancel_transport']);
         $container->setParameter('siganushka_payment.payment_cancel_seconds', $config['payment_cancel_seconds']);
 
         $container->setAlias(PaymentNumberGeneratorInterface::class, $config['payment_number_generator']);
 
         $paymentNumberGeneratorListener = $container->findDefinition(PaymentNumberGeneratorListener::class);
-        $paymentNumberGeneratorListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => Payment::class, 'priority' => 8]);
+        $paymentNumberGeneratorListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => AbstractPayment::class, 'priority' => 8]);
 
         $paymentSetExpiredListener = $container->findDefinition(PaymentSetExpiredListener::class);
-        $paymentSetExpiredListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => Payment::class, 'priority' => 4]);
+        $paymentSetExpiredListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => AbstractPayment::class, 'priority' => 4]);
 
         $paymentCancelMessageListener = $container->findDefinition(PaymentCancelMessageListener::class);
-        $paymentCancelMessageListener->addTag('doctrine.orm.entity_listener', ['event' => Events::postPersist, 'entity' => Payment::class, 'priority' => -256]);
+        $paymentCancelMessageListener->addTag('doctrine.orm.entity_listener', ['event' => Events::postPersist, 'entity' => AbstractPayment::class, 'priority' => -256]);
 
         if (!interface_exists(MessageBusInterface::class) || !$config['payment_cancel_transport']) {
             $container->removeDefinition(PaymentCancelMessageListener::class);
@@ -62,15 +67,24 @@ class SiganushkaPaymentExtension extends Extension implements PrependExtensionIn
     public function prepend(ContainerBuilder $container): void
     {
         $configs = $container->getExtensionConfig($this->getAlias());
+        $config = array_merge(...$configs);
 
-        $configuration = new Configuration();
-        $config = $this->processConfiguration($configuration, $configs);
+        $resolveTargetEntities = [];
+        foreach (Configuration::RESOURCE_MAPPING as $configName => [$interface]) {
+            $resolveTargetEntities[$interface] = $config[$configName] ?? null;
+        }
 
-        if (interface_exists(MessageBusInterface::class) && $config['payment_cancel_transport']) {
+        if (\count($rte = array_filter($resolveTargetEntities))) {
+            $container->prependExtensionConfig('doctrine', [
+                'orm' => ['resolve_target_entities' => $rte],
+            ]);
+        }
+
+        if (interface_exists(MessageBusInterface::class) && $transport = ($config['payment_cancel_transport'] ?? null)) {
             $container->prependExtensionConfig('framework', [
                 'messenger' => [
                     'routing' => [
-                        PaymentCancelMessage::class => $config['payment_cancel_transport'],
+                        PaymentCancelMessage::class => $transport,
                     ],
                 ],
             ]);
