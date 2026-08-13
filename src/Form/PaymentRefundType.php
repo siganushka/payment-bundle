@@ -15,7 +15,6 @@ class PaymentRefundType extends AbstractType
 {
     public function __construct(private readonly PaymentRefundRepository $repository)
     {
-        throw new \Exception('Not implemented');
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
