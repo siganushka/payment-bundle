@@ -17,7 +17,6 @@ use Siganushka\PaymentBundle\Result\RefundNotifyResult;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -29,8 +28,6 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
     public const PAY_OPTIONS = 'wxpay_pay_options';
     public const REFUND_OPTIONS = 'wxpay_refund_options';
 
-    #[Required]
-    public UrlGeneratorInterface $generator;
     #[Required]
     public TranslatorInterface $translator;
     #[Required]
@@ -110,7 +107,7 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
                 'body' => $title,
                 'out_trade_no' => $payment->getNumber(),
                 'total_fee' => $payment->getAmount(),
-                'notify_url' => $this->generateNotifyUrl($this->generator),
+                'notify_url' => $this->generateNotifyUrl(),
             ], $payment->context()[self::PAY_OPTIONS] ?? [], $options);
 
             return $this->unifiedorder->send($mergedOptions);

@@ -10,7 +10,7 @@ use Siganushka\PaymentBundle\Result\NotifyResult;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-interface PaymentGatewayInterface extends \Stringable
+interface PaymentGatewayInterface
 {
     public static function getName(): string;
 

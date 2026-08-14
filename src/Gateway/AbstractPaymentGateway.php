@@ -7,9 +7,13 @@ namespace Siganushka\PaymentBundle\Gateway;
 use Siganushka\GenericBundle\Utils\ClassUtils;
 use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractPaymentGateway implements PaymentGatewayInterface
 {
+    #[Required]
+    public UrlGeneratorInterface $generator;
+
     public static function getName(): string
     {
         return ClassUtils::generateAlias(static::class);
@@ -20,15 +24,10 @@ abstract class AbstractPaymentGateway implements PaymentGatewayInterface
         return true;
     }
 
-    public function __toString(): string
-    {
-        return static::getName();
-    }
-
-    protected function generateNotifyUrl(UrlGeneratorInterface $generator): string
+    protected function generateNotifyUrl(): string
     {
         $gateway = static::getName();
 
-        return $generator->generate('siganushka_payment_notify', compact('gateway'), UrlGeneratorInterface::ABSOLUTE_URL);
+        return $this->generator->generate('siganushka_payment_notify', compact('gateway'), UrlGeneratorInterface::ABSOLUTE_URL);
     }
 }

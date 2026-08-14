@@ -27,8 +27,7 @@ abstract class AbstractAlipay extends AbstractPaymentGateway
     public Refund $alipayRefund;
     #[Required]
     public NotifyHandler $notifyHandler;
-    #[Required]
-    #[Autowire(param: 'kernel.debug')]
+    #[Required, Autowire(param: 'kernel.debug')]
     public bool $debug;
 
     public function refund(AbstractPayment $payment, AbstractPaymentRefund $refund): array

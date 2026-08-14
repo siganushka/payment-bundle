@@ -6,14 +6,12 @@ namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Alipay\PagePayUtils;
 use Siganushka\PaymentBundle\Entity\AbstractPayment;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AlipayPage extends AbstractAlipay
 {
     public function __construct(
-        private readonly UrlGeneratorInterface $generator,
         private readonly TranslatorInterface $translator,
         private readonly PagePayUtils $pagePayUtils)
     {
@@ -31,7 +29,7 @@ class AlipayPage extends AbstractAlipay
             'out_trade_no' => $payment->getNumber(),
             'total_amount_as_cents' => $payment->getAmount(),
             'qr_pay_mode' => 2,
-            'notify_url' => $this->generateNotifyUrl($this->generator),
+            'notify_url' => $this->generateNotifyUrl(),
         ], $payment->context()[self::PAY_OPTIONS] ?? []);
 
         $url = $this->pagePayUtils->url($options);
