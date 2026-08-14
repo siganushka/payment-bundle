@@ -168,12 +168,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
 
     public function getTitle(): string|TranslatableInterface
     {
-        return new TranslatableMessage(\sprintf('payment.type.%s', $this->getType()), $this->getTitleParameters());
-    }
-
-    public function getTitleParameters(): array
-    {
-        return [];
+        return new TranslatableMessage(\sprintf('payment.type.%s', $this->getType()));
     }
 
     public function context(): array
