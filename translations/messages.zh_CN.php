@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'payment.number' => '交易编号',
     'payment.amount' => '支付金额',
-    'payment.refund_amount' => '退款金额',
+    'payment.refunded_amount' => '退款金额',
     'payment.type' => '交易类型',
     'payment.title' => '交易标题',
     'payment.gateway' => '支付方式',

@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'payment.number' => 'Number',
     'payment.amount' => 'Amount',
-    'payment.refund_amount' => 'Refund Amount',
+    'payment.refunded_amount' => 'Refund Amount',
     'payment.type' => 'Type',
     'payment.title' => 'Title',
     'payment.gateway' => 'Pay Method',

@@ -4,7 +4,7 @@ Siganushka\PaymentBundle\Entity\AbstractPayment:
             groups: [payment.item, payment.collection]
         amount:
             groups: [payment.item, payment.collection]
-        refundAmount:
+        refundedAmount:
             groups: [payment.item, payment.collection]
         refundableAmount:
             groups: [payment.item, payment.collection]

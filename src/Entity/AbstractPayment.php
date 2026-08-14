@@ -28,7 +28,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
 
     protected ?string $number = null;
     protected ?int $amount = null;
-    protected ?int $refundAmount = null;
+    protected ?int $refundedAmount = null;
     protected ?string $currency = null;
     protected ?array $details = null;
     protected PaymentState $state = PaymentState::Pending;
@@ -66,9 +66,9 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
         return $this->amount;
     }
 
-    public function getRefundAmount(): ?int
+    public function getRefundedAmount(): ?int
     {
-        return $this->refundAmount;
+        return $this->refundedAmount;
     }
 
     public function getCurrency(): ?string
@@ -131,7 +131,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     public function addRefund(AbstractPaymentRefund $refund): static
     {
         if (!$this->refunds->contains($refund)) {
-            $this->refundAmount += $refund->isSuccessful() ? $refund->getAmount() : 0;
+            $this->refundedAmount += $refund->isSuccessful() ? $refund->getAmount() : 0;
             $this->refunds[] = $refund;
             $refund->setPayment($this);
         }
@@ -145,7 +145,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     public function removeRefund(AbstractPaymentRefund $refund): static
     {
         if ($this->refunds->removeElement($refund)) {
-            $this->refundAmount -= $refund->isSuccessful() ? $refund->getAmount() : 0;
+            $this->refundedAmount -= $refund->isSuccessful() ? $refund->getAmount() : 0;
             if ($refund->getPayment() === $this) {
                 $refund->setPayment(null);
             }
@@ -157,7 +157,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     public function getRefundableAmount(): ?int
     {
         return PaymentState::Succeed === $this->state && \is_int($this->amount)
-            ? $this->amount - $this->refundAmount
+            ? $this->amount - $this->refundedAmount
             : null;
     }
 
