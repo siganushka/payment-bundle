@@ -98,6 +98,7 @@ abstract class AbstractPaymentRefund implements ResourceInterface, Timestampable
     public function setSuccessful(bool $successful): static
     {
         $this->successful = $successful;
+        $this->payment?->resetRefundedAmount();
 
         return $this;
     }

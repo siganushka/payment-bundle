@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\DependencyInjection;
 
+use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
 use Siganushka\PaymentBundle\Generator\PaymentNumberGenerator;
 use Siganushka\PaymentBundle\Generator\PaymentNumberGeneratorInterface;
 use Siganushka\PaymentBundle\Repository\PaymentRefundRepository;
+use Siganushka\PaymentBundle\Repository\PaymentRepository;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class Configuration implements ConfigurationInterface
 {
     public const RESOURCE_MAPPING = [
+        'payment_class' => [AbstractPayment::class, PaymentRepository::class],
         'payment_refund_class' => [AbstractPaymentRefund::class, PaymentRefundRepository::class],
     ];
 

@@ -2,14 +2,16 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                         https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
-  <entity
-    table="payment"
+  <mapped-superclass
     name="Siganushka\PaymentBundle\Entity\AbstractPayment"
-    inheritance-type="SINGLE_TABLE"
     repository-class="Siganushka\PaymentBundle\Repository\PaymentRepository">
     <unique-constraints>
       <unique-constraint columns="number" />
     </unique-constraints>
+
+    <lifecycle-callbacks>
+      <lifecycle-callback type="preFlush" method="getRefundedAmount"/>
+    </lifecycle-callbacks>
 
     <id name="id" type="integer">
       <generator strategy="AUTO"/>
@@ -17,7 +19,7 @@
 
     <field name="number" type="string" />
     <field name="amount" type="integer" />
-    <field name="refundedAmount" type="integer" nullable="true" />
+    <field name="refundedAmount" type="integer" />
     <field name="currency" type="string" />
     <field name="gateway" type="string" />
     <field name="details" type="json" nullable="true" />
@@ -35,5 +37,5 @@
         <cascade-all/>
       </cascade>
     </one-to-many>
-  </entity>
+  </mapped-superclass>
 </doctrine-mapping>

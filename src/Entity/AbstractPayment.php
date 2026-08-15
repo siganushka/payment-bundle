@@ -66,9 +66,16 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
         return $this->amount;
     }
 
-    public function getRefundedAmount(): ?int
+    public function getRefundedAmount(): int
     {
-        return $this->refundedAmount;
+        return $this->refundedAmount ??= $this->refunds->reduce(static fn (int $carry, AbstractPaymentRefund $item) => $item->isSuccessful() ? $carry + $item->getAmount() : $carry, 0);
+    }
+
+    public function resetRefundedAmount(): static
+    {
+        $this->refundedAmount = null;
+
+        return $this;
     }
 
     public function getCurrency(): ?string
@@ -131,7 +138,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     public function addRefund(AbstractPaymentRefund $refund): static
     {
         if (!$this->refunds->contains($refund)) {
-            $this->refundedAmount += $refund->isSuccessful() ? $refund->getAmount() : 0;
+            $this->resetRefundedAmount();
             $this->refunds[] = $refund;
             $refund->setPayment($this);
         }
@@ -145,7 +152,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     public function removeRefund(AbstractPaymentRefund $refund): static
     {
         if ($this->refunds->removeElement($refund)) {
-            $this->refundedAmount -= $refund->isSuccessful() ? $refund->getAmount() : 0;
+            $this->resetRefundedAmount();
             if ($refund->getPayment() === $this) {
                 $refund->setPayment(null);
             }
@@ -154,11 +161,14 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
         return $this;
     }
 
-    public function getRefundableAmount(): ?int
+    public function isRefundSupported(): bool
     {
-        return PaymentState::Succeed === $this->state && \is_int($this->amount)
-            ? $this->amount - $this->refundedAmount
-            : null;
+        return PaymentState::Succeed === $this->state && \is_int($this->amount);
+    }
+
+    public function getRefundableAmount(): int
+    {
+        return $this->isRefundSupported() ? max(0, $this->amount - $this->getRefundedAmount()) : 0;
     }
 
     public function getType(): string
@@ -174,10 +184,5 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     public function context(): array
     {
         return [];
-    }
-
-    public function supportsRefund(): bool
-    {
-        return true;
     }
 }

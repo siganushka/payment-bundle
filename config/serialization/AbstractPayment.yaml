@@ -8,6 +8,8 @@ Siganushka\PaymentBundle\Entity\AbstractPayment:
             groups: [payment.item, payment.collection]
         refundableAmount:
             groups: [payment.item, payment.collection]
+        refundSupported:
+            groups: [payment.item, payment.collection]
         currency:
             groups: [payment.item, payment.collection]
         gateway:
