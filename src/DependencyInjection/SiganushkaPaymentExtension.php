@@ -8,7 +8,6 @@ use Doctrine\ORM\Events;
 use Siganushka\PaymentBundle\Doctrine\PaymentCancelMessageListener;
 use Siganushka\PaymentBundle\Doctrine\PaymentNumberGeneratorListener;
 use Siganushka\PaymentBundle\Doctrine\PaymentSetExpiredListener;
-use Siganushka\PaymentBundle\Entity\AbstractPayment;
 use Siganushka\PaymentBundle\Factory\PaymentFactoryInterface;
 use Siganushka\PaymentBundle\Gateway\PaymentGatewayInterface;
 use Siganushka\PaymentBundle\Generator\PaymentNumberGeneratorInterface;
@@ -42,13 +41,13 @@ class SiganushkaPaymentExtension extends Extension implements PrependExtensionIn
         $container->setAlias(PaymentNumberGeneratorInterface::class, $config['payment_number_generator']);
 
         $paymentNumberGeneratorListener = $container->findDefinition(PaymentNumberGeneratorListener::class);
-        $paymentNumberGeneratorListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => AbstractPayment::class, 'priority' => 8]);
+        $paymentNumberGeneratorListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => $config['payment_class'], 'priority' => 8]);
 
         $paymentSetExpiredListener = $container->findDefinition(PaymentSetExpiredListener::class);
-        $paymentSetExpiredListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => AbstractPayment::class, 'priority' => 4]);
+        $paymentSetExpiredListener->addTag('doctrine.orm.entity_listener', ['event' => Events::prePersist, 'entity' => $config['payment_class'], 'priority' => 4]);
 
         $paymentCancelMessageListener = $container->findDefinition(PaymentCancelMessageListener::class);
-        $paymentCancelMessageListener->addTag('doctrine.orm.entity_listener', ['event' => Events::postPersist, 'entity' => AbstractPayment::class, 'priority' => -256]);
+        $paymentCancelMessageListener->addTag('doctrine.orm.entity_listener', ['event' => Events::postPersist, 'entity' => $config['payment_class'], 'priority' => -256]);
 
         if (!interface_exists(MessageBusInterface::class) || !$config['payment_cancel_transport']) {
             $container->removeDefinition(PaymentCancelMessageListener::class);
