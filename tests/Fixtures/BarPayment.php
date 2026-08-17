@@ -17,9 +17,9 @@ class BarPayment extends AbstractPayment
 
     public function __construct(string $gateway)
     {
-        $this->bars = new ArrayCollection();
-
         parent::__construct($gateway);
+
+        $this->bars = new ArrayCollection();
     }
 
     public function addBar(Bar $bar): static

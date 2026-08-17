@@ -6,21 +6,20 @@ namespace Siganushka\PaymentBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Siganushka\Contracts\Doctrine\ExpirableInterface;
 use Siganushka\Contracts\Doctrine\ExpirableTrait;
-use Siganushka\Contracts\Doctrine\ResourceInterface;
 use Siganushka\Contracts\Doctrine\ResourceTrait;
-use Siganushka\Contracts\Doctrine\TimestampableInterface;
 use Siganushka\Contracts\Doctrine\TimestampableTrait;
 use Siganushka\GenericBundle\Utils\ClassUtils;
 use Siganushka\PaymentBundle\Enum\PaymentState;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Siganushka\PaymentBundle\Model\PaymentRefundInterface;
 use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Contracts\Translation\TranslatableInterface;
 
 /**
- * @template TRefund of AbstractPaymentRefund = AbstractPaymentRefund
+ * @template TRefund of PaymentRefundInterface = PaymentRefundInterface
  */
-abstract class AbstractPayment implements ResourceInterface, TimestampableInterface, ExpirableInterface
+abstract class AbstractPayment implements PaymentInterface
 {
     use ResourceTrait;
     use ExpirableTrait;
@@ -68,7 +67,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
 
     public function getRefundedAmount(): int
     {
-        return $this->refundedAmount ??= $this->refunds->reduce(static fn (int $carry, AbstractPaymentRefund $item) => $item->isSuccessful() ? $carry + $item->getAmount() : $carry, 0);
+        return $this->refundedAmount ??= $this->refunds->reduce(static fn (int $carry, PaymentRefundInterface $item) => $item->isSuccessful() ? $carry + $item->getAmount() : $carry, 0);
     }
 
     public function resetRefundedAmount(): static
@@ -135,7 +134,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     /**
      * @param TRefund $refund
      */
-    public function addRefund(AbstractPaymentRefund $refund): static
+    public function addRefund(PaymentRefundInterface $refund): static
     {
         if (!$this->refunds->contains($refund)) {
             $this->resetRefundedAmount();
@@ -149,7 +148,7 @@ abstract class AbstractPayment implements ResourceInterface, TimestampableInterf
     /**
      * @param TRefund $refund
      */
-    public function removeRefund(AbstractPaymentRefund $refund): static
+    public function removeRefund(PaymentRefundInterface $refund): static
     {
         if ($this->refunds->removeElement($refund)) {
             $this->resetRefundedAmount();

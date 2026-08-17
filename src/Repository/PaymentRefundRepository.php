@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Repository;
 
 use Siganushka\GenericBundle\Repository\GenericEntityRepository;
-use Siganushka\PaymentBundle\Entity\AbstractPayment;
-use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Siganushka\PaymentBundle\Model\PaymentRefundInterface;
 
 /**
- * @template T of AbstractPaymentRefund = AbstractPaymentRefund
+ * @template T of PaymentRefundInterface = PaymentRefundInterface
  *
  * @extends GenericEntityRepository<T>
  */
 class PaymentRefundRepository extends GenericEntityRepository
 {
-    public function createFromPayment(AbstractPayment $payment): AbstractPaymentRefund
+    public function createFromPayment(PaymentInterface $payment): PaymentRefundInterface
     {
         $refundCount = \count($payment->getRefunds());
         $refundNumber = \sprintf('%s%02d', $payment->getNumber(), ++$refundCount);

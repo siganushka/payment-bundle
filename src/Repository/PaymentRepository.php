@@ -7,27 +7,21 @@ namespace Siganushka\PaymentBundle\Repository;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
 use Siganushka\GenericBundle\Repository\GenericEntityRepository;
 use Siganushka\PaymentBundle\Dto\PaymentQueryDto;
-use Siganushka\PaymentBundle\Entity\AbstractPayment;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
 
 /**
- * @template T of AbstractPayment = AbstractPayment
+ * @template T of PaymentInterface = PaymentInterface
  *
  * @extends GenericEntityRepository<T>
  */
 class PaymentRepository extends GenericEntityRepository
 {
-    public function __construct(ManagerRegistry $registry, string $entityClass = AbstractPayment::class)
-    {
-        parent::__construct($registry, $entityClass);
-    }
-
     /**
      * @return T|null
      */
-    public function findOneByNumber(mixed $number): ?AbstractPayment
+    public function findOneByNumber(mixed $number): ?PaymentInterface
     {
         return $this->findOneBy(compact('number'));
     }
@@ -35,7 +29,7 @@ class PaymentRepository extends GenericEntityRepository
     /**
      * @return T|null
      */
-    public function findOneByNumberWithLock(mixed $number): ?AbstractPayment
+    public function findOneByNumberWithLock(mixed $number): ?PaymentInterface
     {
         $qb = $this->createQueryBuilder('p')
             ->where('p.number = :number')

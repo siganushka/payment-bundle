@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Event;
 
-use Siganushka\PaymentBundle\Entity\AbstractPayment;
-use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Siganushka\PaymentBundle\Model\PaymentRefundInterface;
 
 class RefundEvent extends PaymentEvent
 {
     public function __construct(
-        AbstractPayment $payment,
-        protected readonly AbstractPaymentRefund $refund)
+        PaymentInterface $payment,
+        protected readonly PaymentRefundInterface $refund)
     {
         parent::__construct($payment);
     }
 
-    public function getRefund(): AbstractPaymentRefund
+    public function getRefund(): PaymentRefundInterface
     {
         return $this->refund;
     }

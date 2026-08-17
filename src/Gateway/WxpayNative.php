@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Gateway;
 
-use Siganushka\PaymentBundle\Entity\AbstractPayment;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
 
 class WxpayNative extends AbstractWxpay
 {
-    public function pay(AbstractPayment $payment): array
+    public function pay(PaymentInterface $payment): array
     {
         $result = $this->doPay($payment, ['trade_type' => 'NATIVE']);
         // Only reserve code_url to response.

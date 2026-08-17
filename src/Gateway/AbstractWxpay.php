@@ -9,9 +9,9 @@ use Siganushka\ApiFactory\Wxpay\Exception\InvalidSignatureException;
 use Siganushka\ApiFactory\Wxpay\NotifyHandler;
 use Siganushka\ApiFactory\Wxpay\Refund;
 use Siganushka\ApiFactory\Wxpay\Unifiedorder;
-use Siganushka\PaymentBundle\Entity\AbstractPayment;
-use Siganushka\PaymentBundle\Entity\AbstractPaymentRefund;
 use Siganushka\PaymentBundle\Exception\PaymentFailedException;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Siganushka\PaymentBundle\Model\PaymentRefundInterface;
 use Siganushka\PaymentBundle\Result\NotifyResult;
 use Siganushka\PaymentBundle\Result\RefundNotifyResult;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -42,7 +42,7 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
     #[Autowire(param: 'kernel.debug')]
     public bool $debug;
 
-    public function refund(AbstractPayment $payment, AbstractPaymentRefund $refund): array
+    public function refund(PaymentInterface $payment, PaymentRefundInterface $refund): array
     {
         $options = array_merge([
             'out_trade_no' => $payment->getNumber(),
@@ -93,7 +93,7 @@ abstract class AbstractWxpay extends AbstractPaymentGateway
             : $this->notifyHandler->fail(...), $message);
     }
 
-    protected function doPay(AbstractPayment $payment, array $options = []): array
+    protected function doPay(PaymentInterface $payment, array $options = []): array
     {
         $callback = function (ItemInterface $item) use ($payment, $options): array {
             $item->expiresAfter(3600);

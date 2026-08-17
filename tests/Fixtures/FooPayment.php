@@ -10,8 +10,8 @@ class FooPayment extends AbstractPayment
 {
     public function __construct(string $gateway, int $amount)
     {
-        $this->amount = $amount;
-
         parent::__construct($gateway);
+
+        $this->amount = $amount;
     }
 }

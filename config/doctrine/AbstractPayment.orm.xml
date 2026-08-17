@@ -29,7 +29,7 @@
     <field name="updatedAt" type="datetime_immutable" nullable="true" />
     <field name="expiredAt" type="datetime_immutable" nullable="true" />
 
-    <one-to-many field="refunds" target-entity="Siganushka\PaymentBundle\Entity\AbstractPaymentRefund" mapped-by="payment" orphan-removal="true">
+    <one-to-many field="refunds" target-entity="Siganushka\PaymentBundle\Model\PaymentRefundInterface" mapped-by="payment" orphan-removal="true">
       <order-by>
         <order-by-field name="id" direction="DESC" />
       </order-by>

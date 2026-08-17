@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Entity;
 
-use Siganushka\Contracts\Doctrine\ResourceInterface;
 use Siganushka\Contracts\Doctrine\ResourceTrait;
-use Siganushka\Contracts\Doctrine\TimestampableInterface;
 use Siganushka\Contracts\Doctrine\TimestampableTrait;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Siganushka\PaymentBundle\Model\PaymentRefundInterface;
 
 /**
- * @template TPayment of AbstractPayment = AbstractPayment
+ * @template TPayment of PaymentInterface = PaymentInterface
  */
-abstract class AbstractPaymentRefund implements ResourceInterface, TimestampableInterface
+abstract class AbstractPaymentRefund implements PaymentRefundInterface
 {
     use ResourceTrait;
     use TimestampableTrait;
@@ -20,7 +20,7 @@ abstract class AbstractPaymentRefund implements ResourceInterface, Timestampable
     /**
      * @var TPayment|null
      */
-    protected ?AbstractPayment $payment = null;
+    protected ?PaymentInterface $payment = null;
     protected ?string $number = null;
     protected ?int $amount = null;
     protected ?array $details = null;
@@ -31,7 +31,7 @@ abstract class AbstractPaymentRefund implements ResourceInterface, Timestampable
     /**
      * @param TPayment|null $payment
      */
-    public function __construct(?AbstractPayment $payment = null)
+    public function __construct(?PaymentInterface $payment = null)
     {
         $this->payment = $payment;
     }
@@ -39,7 +39,7 @@ abstract class AbstractPaymentRefund implements ResourceInterface, Timestampable
     /**
      * @return TPayment|null
      */
-    public function getPayment(): ?AbstractPayment
+    public function getPayment(): ?PaymentInterface
     {
         return $this->payment;
     }
@@ -47,7 +47,7 @@ abstract class AbstractPaymentRefund implements ResourceInterface, Timestampable
     /**
      * @param TPayment|null $payment
      */
-    public function setPayment(?AbstractPayment $payment): static
+    public function setPayment(?PaymentInterface $payment): static
     {
         $this->payment = $payment;
 

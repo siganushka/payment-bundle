@@ -22,6 +22,6 @@
     <field name="createdAt" type="datetime_immutable" />
     <field name="updatedAt" type="datetime_immutable" nullable="true" />
 
-    <many-to-one field="payment" target-entity="Siganushka\PaymentBundle\Entity\AbstractPayment" inversed-by="refunds" />
+    <many-to-one field="payment" target-entity="Siganushka\PaymentBundle\Model\PaymentInterface" inversed-by="refunds" />
   </mapped-superclass>
 </doctrine-mapping>

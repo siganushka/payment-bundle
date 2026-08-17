@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Wxpay\ParameterUtils;
-use Siganushka\PaymentBundle\Entity\AbstractPayment;
+use Siganushka\PaymentBundle\Model\PaymentInterface;
 use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -17,7 +17,7 @@ class AlipayApp extends AbstractAlipay
     {
     }
 
-    public function pay(AbstractPayment $payment): array
+    public function pay(PaymentInterface $payment): array
     {
         $title = $payment->getTitle();
         if ($title instanceof TranslatableInterface) {
