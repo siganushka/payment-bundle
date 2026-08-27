@@ -22,9 +22,11 @@ class PaymentRefundType extends AbstractType
         $builder
             ->add('amount', MoneyType::class, [
                 'label' => 'payment_refund.amount',
+                'priority' => 0,
             ])
             ->add('note', TextareaType::class, [
                 'label' => 'payment_refund.note',
+                'priority' => -10,
                 'required' => false,
             ])
         ;
