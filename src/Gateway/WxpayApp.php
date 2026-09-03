@@ -6,7 +6,9 @@ namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Wxpay\ParameterUtils;
 use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
+#[AsTaggedItem('wxpay_app')]
 class WxpayApp extends AbstractWxpay
 {
     public function __construct(private readonly ParameterUtils $parameterUtils)

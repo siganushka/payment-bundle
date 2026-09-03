@@ -82,9 +82,7 @@ class SiganushkaPaymentExtension extends Extension implements PrependExtensionIn
         if (interface_exists(MessageBusInterface::class) && $transport = ($config['payment_cancel_transport'] ?? null)) {
             $container->prependExtensionConfig('framework', [
                 'messenger' => [
-                    'routing' => [
-                        PaymentCancelMessage::class => $transport,
-                    ],
+                    'routing' => [PaymentCancelMessage::class => $transport],
                 ],
             ]);
         }

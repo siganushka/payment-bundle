@@ -7,7 +7,9 @@ namespace Siganushka\PaymentBundle\Gateway;
 use Siganushka\ApiFactory\Wxpay\ParameterUtils;
 use Siganushka\PaymentBundle\Exception\PaymentContextRequiredException;
 use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
+#[AsTaggedItem('wxpay_jsapi')]
 class WxpayJsapi extends AbstractWxpay
 {
     public const OPTIONS_OPENID = 'openid';

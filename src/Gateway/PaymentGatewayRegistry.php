@@ -15,7 +15,7 @@ class PaymentGatewayRegistry
      * @param ServiceLocator<PaymentGatewayInterface> $locator
      */
     public function __construct(
-        #[AutowireLocator('siganushka_payment.gateway', defaultIndexMethod: 'getName')]
+        #[AutowireLocator('siganushka_payment.gateway')]
         private readonly ServiceLocator $locator)
     {
     }

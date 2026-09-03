@@ -12,8 +12,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 interface PaymentGatewayInterface
 {
-    public static function getName(): string;
-
     public function supports(PaymentInterface $payment): bool;
 
     public function pay(PaymentInterface $payment): array;

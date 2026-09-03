@@ -6,9 +6,11 @@ namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\ApiFactory\Wxpay\ParameterUtils;
 use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 use Symfony\Contracts\Translation\TranslatableInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+#[AsTaggedItem('alipay_app')]
 class AlipayApp extends AbstractAlipay
 {
     public function __construct(

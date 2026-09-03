@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Siganushka\PaymentBundle\Gateway;
 
 use Siganushka\PaymentBundle\Model\PaymentInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 
+#[AsTaggedItem('wxpay_native')]
 class WxpayNative extends AbstractWxpay
 {
     public function pay(PaymentInterface $payment): array
