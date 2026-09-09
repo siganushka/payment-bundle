@@ -18,7 +18,7 @@ class PaymentFactory implements PaymentFactoryInterface
     {
     }
 
-    public function createPayment(string $type, int|string $identifier, string $gateway): PaymentInterface
+    public function createPayment(string $type, string|int $identifier, string $gateway): PaymentInterface
     {
         foreach ($this->factories as $factory) {
             if ($factory->supportsType($type)) {

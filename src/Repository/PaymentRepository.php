@@ -48,7 +48,7 @@ class PaymentRepository extends GenericEntityRepository
 
     public function createQueryBuilderByDto(string $alias, PaymentQueryDto $dto): QueryBuilder
     {
-        $criteria = new Criteria(firstResult: 0, accessRawFieldValues: true);
+        $criteria = Criteria::create();
 
         if ($dto->number) {
             $criteria->andWhere(Criteria::expr()->contains('number', $dto->number));

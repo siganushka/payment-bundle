@@ -30,7 +30,7 @@ class PaymentNotifyController extends AbstractController
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly EntityManagerInterface $entityManager,
         protected readonly PaymentRepository $paymentRepository,
-        protected readonly PaymentRefundRepository $paymentRefundRepository)
+        protected readonly PaymentRefundRepository $refundRepository)
     {
     }
 
@@ -90,7 +90,7 @@ class PaymentNotifyController extends AbstractController
     private function handleRefund(RefundNotifyResult $result): void
     {
         $number = $result->getNumber();
-        $refund = $this->paymentRefundRepository->findOneBy(compact('number'))
+        $refund = $this->refundRepository->findOneBy(compact('number'))
             ?? throw new \RuntimeException(\sprintf('Payment refund #%s not found.', $number));
 
         if ($refund->getAmount() !== $result->getAmount()) {

@@ -97,7 +97,7 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    public function postRefunds(Request $request, PaymentManagerInterface $paymentManager, PaymentRefundRepository $paymentRefundRepository, string $number): Response
+    public function postRefunds(Request $request, PaymentManagerInterface $paymentManager, PaymentRefundRepository $refundRepository, string $number): Response
     {
         $entity = $this->paymentRepository->findOneByNumber($number)
             ?? throw $this->createNotFoundException();
@@ -111,7 +111,7 @@ class PaymentController extends AbstractController
             throw new BadRequestHttpException('The payment has been fully refunded.');
         }
 
-        $refund = $paymentRefundRepository->createFromPayment($entity);
+        $refund = $refundRepository->createFromPayment($entity);
         $refund->setAmount($refundableAmount);
 
         $form = $this->createForm(PaymentRefundType::class, $refund);

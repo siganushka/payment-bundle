@@ -8,7 +8,7 @@ use Siganushka\PaymentBundle\Model\PaymentInterface;
 
 interface PaymentFactoryInterface
 {
-    public function createPayment(string $type, int|string $identifier, string $gateway): PaymentInterface;
+    public function createPayment(string $type, string|int $identifier, string $gateway): PaymentInterface;
 
     public function supportsType(string $type): bool;
 }
