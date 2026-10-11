@@ -37,7 +37,7 @@ class PaymentController extends AbstractController
 
     public function getCollection(PaginatorInterface $paginator, #[MapQueryString] PaymentQueryDto $dto): Response
     {
-        $qb = $this->paymentRepository->createQueryBuilderByDto('t', $dto);
+        $qb = $this->paymentRepository->createQueryBuilderFromDto('t', $dto);
         $pagination = $paginator->paginate($qb);
 
         return $this->json($pagination, context: [

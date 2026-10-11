@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Repository;
 
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\QueryBuilder;
 use Siganushka\GenericBundle\Repository\GenericEntityRepository;
@@ -46,29 +45,9 @@ class PaymentRepository extends GenericEntityRepository
         return $entity;
     }
 
-    public function createQueryBuilderByDto(string $alias, PaymentQueryDto $dto): QueryBuilder
+    public function createQueryBuilderFromDto(string $alias, PaymentQueryDto $dto): QueryBuilder
     {
-        $criteria = Criteria::create();
-
-        if ($dto->number) {
-            $criteria->andWhere(Criteria::expr()->contains('number', $dto->number));
-        }
-
-        if ($dto->gateway) {
-            $criteria->andWhere(Criteria::expr()->eq('gateway', $dto->gateway));
-        }
-
-        if ($dto->state) {
-            $criteria->andWhere(Criteria::expr()->eq('state', $dto->state));
-        }
-
-        if ($dto->created?->startAt) {
-            $criteria->andWhere(Criteria::expr()->gte('createdAt', $dto->created->startAt));
-        }
-
-        if ($dto->created?->endAt) {
-            $criteria->andWhere(Criteria::expr()->lte('createdAt', $dto->created->endAt));
-        }
+        $criteria = self::createCriteriaFromDto($dto);
 
         $qb = $this->createQueryBuilderWithOrderBy($alias);
         $qb->addCriteria($criteria);
