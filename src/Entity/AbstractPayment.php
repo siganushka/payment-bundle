@@ -7,7 +7,6 @@ namespace Siganushka\PaymentBundle\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Siganushka\Contracts\Doctrine\ExpirableTrait;
-use Siganushka\Contracts\Doctrine\ResourceTrait;
 use Siganushka\Contracts\Doctrine\TimestampableTrait;
 use Siganushka\GenericBundle\Utils\ClassUtils;
 use Siganushka\PaymentBundle\Enum\PaymentState;
@@ -21,10 +20,10 @@ use Symfony\Contracts\Translation\TranslatableInterface;
  */
 abstract class AbstractPayment implements PaymentInterface
 {
-    use ResourceTrait;
     use ExpirableTrait;
     use TimestampableTrait;
 
+    protected ?int $id = null;
     protected ?string $number = null;
     protected ?int $amount = null;
     protected ?int $refundedAmount = null;

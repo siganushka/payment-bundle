@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Entity;
 
-use Siganushka\Contracts\Doctrine\ResourceTrait;
 use Siganushka\Contracts\Doctrine\TimestampableTrait;
 use Siganushka\PaymentBundle\Model\PaymentInterface;
 use Siganushka\PaymentBundle\Model\PaymentRefundInterface;
@@ -14,12 +13,10 @@ use Siganushka\PaymentBundle\Model\PaymentRefundInterface;
  */
 abstract class AbstractPaymentRefund implements PaymentRefundInterface
 {
-    use ResourceTrait;
     use TimestampableTrait;
 
-    /**
-     * @var TPayment|null
-     */
+    protected ?int $id = null;
+    /** @var TPayment|null */
     protected ?PaymentInterface $payment = null;
     protected ?string $number = null;
     protected ?int $amount = null;

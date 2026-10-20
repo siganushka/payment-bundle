@@ -6,12 +6,11 @@ namespace Siganushka\PaymentBundle\Model;
 
 use Doctrine\Common\Collections\Collection;
 use Siganushka\Contracts\Doctrine\ExpirableInterface;
-use Siganushka\Contracts\Doctrine\ResourceInterface;
 use Siganushka\Contracts\Doctrine\TimestampableInterface;
 use Siganushka\PaymentBundle\Enum\PaymentState;
 use Symfony\Contracts\Translation\TranslatableInterface;
 
-interface PaymentInterface extends ResourceInterface, TimestampableInterface, ExpirableInterface
+interface PaymentInterface extends TimestampableInterface, ExpirableInterface
 {
     public function getNumber(): ?string;
 

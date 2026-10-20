@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Siganushka\PaymentBundle\Model;
 
-use Siganushka\Contracts\Doctrine\ResourceInterface;
 use Siganushka\Contracts\Doctrine\TimestampableInterface;
 
-interface PaymentRefundInterface extends ResourceInterface, TimestampableInterface
+interface PaymentRefundInterface extends TimestampableInterface
 {
     public function getPayment(): ?PaymentInterface;
 
