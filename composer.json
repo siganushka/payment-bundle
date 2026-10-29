@@ -24,7 +24,6 @@
     },
     "require-dev": {
         "symfony/messenger": "^7.4|^8.0",
-        "siganushka/api-factory": "^1.2",
         "siganushka/alipay-api": "^1.2",
         "siganushka/wxpay-api": "^1.2",
         "godruoyi/php-snowflake": "^3.0"
